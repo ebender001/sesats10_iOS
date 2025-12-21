@@ -11,6 +11,7 @@ import SwiftData
 struct ContentView: View {
     @Environment(\.modelContext) var modelContext
     @Query var questions: [Question]
+    @AppStorage("disclaimerSeen") private var disclaimerSeen = false
     
     var cleanDatabase: Bool {
         questions.filter { !$0.selectedAnswer.isEmpty }.count == 0
@@ -62,7 +63,7 @@ struct ContentView: View {
                    isPresented: $showMenu) {
                 //reset database
                 if !cleanDatabase {
-                    Button("Reset Database") {
+                    Button("Reset Database", role: .destructive) {
                         resetDatabase()
                     }
                 }
@@ -77,8 +78,8 @@ struct ContentView: View {
                     showPrivacyPolicy.toggle()
                 }
                 
-                Button("Close", role: .cancel) {
-                    
+                if cleanDatabase {
+                    Button("Close", role: .close) {}
                 }
             }
                    .sheet(isPresented: $showDisclaimer) {
@@ -93,10 +94,12 @@ struct ContentView: View {
             if !dataSeeded {
                 print("Not seeded")
                 seedDatabase()
-            } else {
                 
-                //debug
-                print(modelContext.sqliteCommand)
+            }
+            
+            if !disclaimerSeen {
+                disclaimerSeen = true
+                showDisclaimer.toggle()
             }
         }
     }
