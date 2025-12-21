@@ -67,7 +67,6 @@ struct ContentView: View {
                     }
                 }
                 
-                
                 //show disclaimer
                 Button("Disclaimer") {
                     showDisclaimer.toggle()
