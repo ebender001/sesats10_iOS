@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct SESATS10App: App {
@@ -13,5 +14,6 @@ struct SESATS10App: App {
         WindowGroup {
             ContentView()
         }
+        .modelContainer(for: Question.self)
     }
 }
