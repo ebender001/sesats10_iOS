@@ -20,9 +20,14 @@ struct PrivacyPolicyView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Dismiss") {
+                    Button {
                         dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
                     }
+//                    Button("Dismiss") {
+//                        dismiss()
+//                    }
                 }
             }
         }

@@ -24,20 +24,21 @@ struct MediaDetailView: View {
     
     var body: some View {
         if mediaType == .image, let image = image {
-            VStack {
+            NavigationStack {
                 image
                     .resizable()
                     .scaledToFit()
                     .padding()
-                Button("Dismiss") {
-                    dismiss()
-                }
-                .buttonStyle(.borderless)
-                .foregroundStyle(.secondary)
-                .fontWeight(.bold)
+                    .toolbar {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Image(systemName: "xmark")
+                        }
+                    }
             }
         } else if mediaType == .video {
-            VStack {
+            NavigationStack {
                 if let url = Bundle.main.url(forResource: media, withExtension: nil) {
                     VideoPlayer(player: player)
                         .onAppear {
@@ -48,14 +49,14 @@ struct MediaDetailView: View {
                             player?.pause()
                             player = nil
                         }
+                        .toolbar {
+                            Button {
+                                dismiss()
+                            } label: {
+                                Image(systemName: "xmark")
+                            }
+                        }
                 }
-
-                Button("Dismiss") {
-                    dismiss()
-                }
-                .buttonStyle(.borderless)
-                .foregroundStyle(.secondary)
-                .fontWeight(.bold)
             }
         }
     }

@@ -84,7 +84,8 @@ struct QuestionDetailView: View {
                 
             }
         }
-        .alert("Answer Status", isPresented: $showAnswerStatus) {
+        .alert("\(question.answeredCorrectly ? "Correct" : "Incorrect") Answer",
+               isPresented: $showAnswerStatus) {
             Button("OK", role: .close) {
                 dismiss()
             }
@@ -94,7 +95,9 @@ struct QuestionDetailView: View {
                 }
             }
         } message: {
-            let answerStatus = question.answeredCorrectly ? "correctly" : "incorrectly. View critique for correct answer"
+            let answerStatus = question.answeredCorrectly ?
+            "correctly. Congratulations! You can view the critique or just keep going." :
+            "incorrectly. View critique for correct answer"
             Text("You answered \(answerStatus).")
         }
         .alert("Confirm Answer", isPresented: $showConfirmation) {

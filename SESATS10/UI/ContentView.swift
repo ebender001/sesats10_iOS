@@ -7,11 +7,14 @@
 
 import SwiftUI
 import SwiftData
+import RevenueCat
+import RevenueCatUI
 
 struct ContentView: View {
     @Environment(\.modelContext) var modelContext
     @Query var questions: [Question]
     @AppStorage("disclaimerSeen") private var disclaimerSeen = false
+    @State private var isCustomerCenterPresented = false
     
     var cleanDatabase: Bool {
         questions.filter { !$0.selectedAnswer.isEmpty }.count == 0
@@ -25,81 +28,89 @@ struct ContentView: View {
     
     var body: some View {
         NavigationStack {
-            List {
-                Section(header: Text("Topics")) {
-                    ForEach(topics) { topic in
-                        NavigationLink {
-                            QuestionListView(topic: topic.title)
-                        } label: {
-                            TopicRowView(topic: topic)
+            ZStack {
+                List {
+                    Section(header: Text("Topics")) {
+                        ForEach(topics) { topic in
+                            NavigationLink {
+                                QuestionListView(topic: topic.title)
+                            } label: {
+                                TopicRowView(topic: topic)
+                            }
+                            
                         }
-
+                    }
+                    
+                    Section {
+                        ForEach(scorecards) { scorecard in
+                            NavigationLink {
+                                ReviewQuestionListView(
+                                    questions: questions,
+                                    correctlyAnswered: scorecard.title == "Correct" ? true : false)
+                            } label: {
+                                ScorecardRowView(scorecard: scorecard)
+                            }
+                        }
+                    } header: {
+                        Text("Scorecard")
+                    } footer: {
+                        if !cleanDatabase {
+                            Text("Reset database")
+                                .fontWeight(.medium)
+                                .onTapGesture {
+                                    resetDatabase()
+                                }
+                        }
                     }
                 }
+                .navigationTitle("SESATS 10")
+                       .sheet(isPresented: $showDisclaimer) {
+                           DisclaimerView()
+                       }
+                       .sheet(isPresented: $showPrivacyPolicy) {
+                           PrivacyPolicyView()
+                       }
                 
-                Section(header: Text("Scorecard")) {
-                    ForEach(scorecards) { scorecard in
-                        NavigationLink {
-                            ReviewQuestionListView(
-                                questions: questions,
-                                correctlyAnswered: scorecard.title == "Correct" ? true : false)
-                        } label: {
-                            ScorecardRowView(scorecard: scorecard)
-                        }
-                    }
-                }
             }
-            .navigationTitle("SESATS 10")
+            HStack {
+                Text("Disclaimer")
+                    .padding(.horizontal)
+                    .onTapGesture {
+                        showDisclaimer.toggle()
+                    }
+                                
+                Text("Privacy Policy")
+                    .padding(.horizontal)
+                    .onTapGesture {
+                        showPrivacyPolicy.toggle()
+                    }
+            }
+            .font(.footnote)
+            .foregroundStyle(.secondary)
             .toolbar {
-                ToolbarItem {
+                ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        showMenu.toggle()
+                        isCustomerCenterPresented.toggle()
                     } label: {
-                        Image(systemName: "menucard.fill")
+                        Image(systemName: "person.crop.circle")
                     }
                 }
             }
-            .alert("Options",
-                   isPresented: $showMenu) {
-                //reset database
-                if !cleanDatabase {
-                    Button("Reset Database", role: .destructive) {
-                        resetDatabase()
-                    }
+            .sheet(isPresented: $isCustomerCenterPresented, content: {
+                CustomerCenterView()
+                    
+            })
+            .task {
+                if !dataSeeded {
+                    print("Not seeded")
+                    seedDatabase()
+                    
                 }
                 
-                //show disclaimer
-                Button("Disclaimer") {
+                if !disclaimerSeen {
+                    disclaimerSeen = true
                     showDisclaimer.toggle()
                 }
-                
-                //show privacy policy
-                Button("Privacy Policy") {
-                    showPrivacyPolicy.toggle()
-                }
-                
-                if cleanDatabase {
-                    Button("Close", role: .close) {}
-                }
-            }
-                   .sheet(isPresented: $showDisclaimer) {
-                       DisclaimerView()
-                   }
-                   .sheet(isPresented: $showPrivacyPolicy) {
-                       PrivacyPolicyView()
-                   }
-            
-        }
-        .task {
-            if !dataSeeded {
-                print("Not seeded")
-                seedDatabase()
-                
-            }
-            
-            if !disclaimerSeen {
-                disclaimerSeen = true
-                showDisclaimer.toggle()
             }
         }
     }
@@ -130,7 +141,6 @@ struct ContentView: View {
         
         do {
             let questionsString = try String(contentsOf: path, encoding: .utf8)
-//                .removingHTMLTags()
                 .replacingOccurrences(of: "\"", with: "")
                 .replacingOccurrences(of: "&#39;", with: "'")
             let questionsArray = questionsString.components(separatedBy: "\n")
@@ -164,7 +174,6 @@ struct ContentView: View {
         let descriptor = FetchDescriptor<Question>()
         do {
             let count = try modelContext.fetchCount(descriptor)
-            print("Count: \(count)")
             return count > 0
         } catch {
             print("Failed to fetch count: \(error.localizedDescription)")

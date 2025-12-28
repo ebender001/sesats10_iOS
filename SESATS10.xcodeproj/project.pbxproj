@@ -6,6 +6,14 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		CE467D282EFC93B2000ADC31 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = CE467D272EFC93B2000ADC31 /* RevenueCat */; };
+		CE467D2A2EFC93B2000ADC31 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = CE467D292EFC93B2000ADC31 /* RevenueCatUI */; };
+		CE8C9A5E2EF9F2C200C00C9E /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = CE8C9A5D2EF9F2C200C00C9E /* FirebaseAppCheck */; };
+		CEC268F82EF8A329008E7FC4 /* FirebaseAI in Frameworks */ = {isa = PBXBuildFile; productRef = CEC268F72EF8A329008E7FC4 /* FirebaseAI */; };
+		CEC268FA2EF8A329008E7FC4 /* FirebaseAILogic in Frameworks */ = {isa = PBXBuildFile; productRef = CEC268F92EF8A329008E7FC4 /* FirebaseAILogic */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		CED8F92E2EF31DD3009E2641 /* SESATS10.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SESATS10.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -36,16 +44,29 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE467D282EFC93B2000ADC31 /* RevenueCat in Frameworks */,
+				CEC268FA2EF8A329008E7FC4 /* FirebaseAILogic in Frameworks */,
+				CE8C9A5E2EF9F2C200C00C9E /* FirebaseAppCheck in Frameworks */,
+				CE467D2A2EFC93B2000ADC31 /* RevenueCatUI in Frameworks */,
+				CEC268F82EF8A329008E7FC4 /* FirebaseAI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		CE8C9A5C2EF9F2C200C00C9E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		CED8F9252EF31DD3009E2641 = {
 			isa = PBXGroup;
 			children = (
 				CED8F9302EF31DD3009E2641 /* SESATS10 */,
+				CE8C9A5C2EF9F2C200C00C9E /* Frameworks */,
 				CED8F92F2EF31DD3009E2641 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -78,6 +99,11 @@
 			);
 			name = SESATS10;
 			packageProductDependencies = (
+				CEC268F72EF8A329008E7FC4 /* FirebaseAI */,
+				CEC268F92EF8A329008E7FC4 /* FirebaseAILogic */,
+				CE8C9A5D2EF9F2C200C00C9E /* FirebaseAppCheck */,
+				CE467D272EFC93B2000ADC31 /* RevenueCat */,
+				CE467D292EFC93B2000ADC31 /* RevenueCatUI */,
 			);
 			productName = SESATS10;
 			productReference = CED8F92E2EF31DD3009E2641 /* SESATS10.app */;
@@ -107,6 +133,10 @@
 			);
 			mainGroup = CED8F9252EF31DD3009E2641;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				CEC268F62EF8A329008E7FC4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				CE467D262EFC93B2000ADC31 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CED8F92F2EF31DD3009E2641 /* Products */;
 			projectDirPath = "";
@@ -279,7 +309,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 2.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.cvoffice.sesats10.SESATS10;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cvoffice.sesats10;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -311,7 +341,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 2.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.cvoffice.sesats10.SESATS10;
+				PRODUCT_BUNDLE_IDENTIFIER = com.cvoffice.sesats10;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -345,6 +375,53 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		CE467D262EFC93B2000ADC31 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.52.0;
+			};
+		};
+		CEC268F62EF8A329008E7FC4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.7.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		CE467D272EFC93B2000ADC31 /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CE467D262EFC93B2000ADC31 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCat;
+		};
+		CE467D292EFC93B2000ADC31 /* RevenueCatUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CE467D262EFC93B2000ADC31 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCatUI;
+		};
+		CE8C9A5D2EF9F2C200C00C9E /* FirebaseAppCheck */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CEC268F62EF8A329008E7FC4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAppCheck;
+		};
+		CEC268F72EF8A329008E7FC4 /* FirebaseAI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CEC268F62EF8A329008E7FC4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAI;
+		};
+		CEC268F92EF8A329008E7FC4 /* FirebaseAILogic */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CEC268F62EF8A329008E7FC4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAILogic;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = CED8F9262EF31DD3009E2641 /* Project object */;
 }
