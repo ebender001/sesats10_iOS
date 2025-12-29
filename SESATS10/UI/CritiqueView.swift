@@ -8,10 +8,11 @@
 import SwiftUI
 import RevenueCat
 import RevenueCatUI
-
+import TipKit
 
 struct CritiqueView: View {
     let question: Question
+    let aiTip = AITip()
     
     var distractors: [String] {
         [
@@ -39,6 +40,7 @@ struct CritiqueView: View {
             Section(header: Text("Question")) {
                 Text(question.questionText)
             }
+
             Section(header: Text("Correct Answer: \(question.correctAnswer.uppercased())")) {
                 Text(displayCorrectAnswer())
             }
@@ -64,7 +66,10 @@ struct CritiqueView: View {
                         }
                     }
                 } label: {
-                    Image(systemName: "apple.intelligence")
+                    VStack {
+                        Image(systemName: "apple.intelligence")
+                    }
+                    .popoverTip(aiTip, arrowEdge: .trailing)
                 }
             }
         }

@@ -10,15 +10,25 @@ import SwiftData
 import Firebase
 import FirebaseAppCheck
 import RevenueCat
+import TipKit
 
 @main
 struct SESATS10App: App {
     
     init() {
+        try? Tips.configure([
+            .displayFrequency(.immediate),
+            .datastoreLocation(.applicationDefault)
+        ])
         let providerFactory = Sesats10AppCheckProviderFactory()
         AppCheck.setAppCheckProviderFactory(providerFactory)
         FirebaseApp.configure()
-        Purchases.configure(withAPIKey: "test_PTzKqKBVdiWLXzpaYBdsDlxNnuz")
+        
+        #if DEBUG
+        Purchases.configure(withAPIKey: Constants.API_KEY_DEVELOPMENT)
+        #else
+        Purchases.configure(withAPIKey: Constants.API_KEY_PRODUCTION)
+        #endif
     }
     
     var body: some Scene {

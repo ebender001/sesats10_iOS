@@ -9,12 +9,13 @@ import SwiftUI
 import SwiftData
 import RevenueCat
 import RevenueCatUI
+import TipKit
 
 struct ContentView: View {
     @Environment(\.modelContext) var modelContext
     @Query var questions: [Question]
-    @AppStorage("disclaimerSeen") private var disclaimerSeen = false
     @State private var isCustomerCenterPresented = false
+    @AppStorage(Constants.DISCLAIMER_SHOWN) var disclaimerShown = false
     
     var cleanDatabase: Bool {
         questions.filter { !$0.selectedAnswer.isEmpty }.count == 0
@@ -26,10 +27,20 @@ struct ContentView: View {
     @State private var showDisclaimer = false
     @State private var showPrivacyPolicy = false
     
+    private let subscriptionTip = SubscriptionTip()
+    
+    init() {
+        try? Tips.configure([
+            .displayFrequency(.immediate),
+            .datastoreLocation(.applicationDefault)
+        ])
+    }
+    
     var body: some View {
         NavigationStack {
             ZStack {
                 List {
+                    TipView(subscriptionTip)
                     Section(header: Text("Topics")) {
                         ForEach(topics) { topic in
                             NavigationLink {
@@ -76,6 +87,7 @@ struct ContentView: View {
                 Text("Disclaimer")
                     .padding(.horizontal)
                     .onTapGesture {
+                        disclaimerShown = true
                         showDisclaimer.toggle()
                     }
                                 
@@ -92,7 +104,9 @@ struct ContentView: View {
                     Button {
                         isCustomerCenterPresented.toggle()
                     } label: {
-                        Image(systemName: "person.crop.circle")
+                        VStack {
+                            Image(systemName: "person.crop.circle")
+                        }
                     }
                 }
             }
@@ -107,9 +121,16 @@ struct ContentView: View {
                     
                 }
                 
-                if !disclaimerSeen {
-                    disclaimerSeen = true
-                    showDisclaimer.toggle()
+                //show disclaimer after tip dismissed
+                for await status in subscriptionTip.statusUpdates {
+                    if case .invalidated(let reason) = status {
+                        if reason == .tipClosed {
+                            if !disclaimerShown {
+                                disclaimerShown = true
+                                showDisclaimer.toggle()
+                            }
+                        }
+                    }
                 }
             }
         }
