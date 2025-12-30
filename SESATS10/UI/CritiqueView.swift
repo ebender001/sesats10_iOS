@@ -11,6 +11,8 @@ import RevenueCatUI
 import TipKit
 
 struct CritiqueView: View {
+    @EnvironmentObject var paywallViewModel: PaywallViewModel
+    
     let question: Question
     let aiTip = AITip()
     
@@ -34,9 +36,12 @@ struct CritiqueView: View {
     @State private var showAIView = false
     @State private var showPaywallAlert = false
     @State private var showPaywallView = false
-    
+        
     var body: some View {
         Form{
+            Section {
+                TipView(aiTip)
+            }
             Section(header: Text("Question")) {
                 Text(question.questionText)
             }
@@ -69,37 +74,39 @@ struct CritiqueView: View {
                     VStack {
                         Image(systemName: "apple.intelligence")
                     }
-                    .popoverTip(aiTip, arrowEdge: .trailing)
                 }
             }
         }
         .sheet(isPresented: $showAIView) {
             AIView(question: question)
         }
-        .presentPaywallIfNeeded(requiredEntitlementIdentifier: Constants.ENTITLEMENT_ID,
-                                purchaseCompleted: { customerInfo in
-                print("Purchase completed: \(customerInfo.entitlements)")
-        },
-                                restoreCompleted: { customerInfo in
-                print("Purchases restored: \(customerInfo.entitlements)")
-        },
-                                purchaseFailure: { error in
-            print("Purchase failed with error: \(error.description)")
-        },
-                                restoreFailure: { error in
-                print("Restore purchase failed with error: \(error.description)")
-        }
-        )
         .alert("Artificial Intelligence", isPresented: $showPaywallAlert) {
-            Button("Purchase") {
-                showPaywallView.toggle()
+            Button("Show Offers") {
+                if let offering = paywallViewModel.offering, !offering.availablePackages.isEmpty {
+                    showPaywallView = true
+                } else {
+                    Task {
+                        await paywallViewModel.refresh()
+                    }
+                }
             }
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("The artificial intelligence component is not available. Please purchase a subscription to access this feature.")
         }
         .sheet(isPresented: $showPaywallView) {
-            PaywallView()
+            if let offering = paywallViewModel.offering {
+                ZStack(alignment: .topTrailing) {
+                    PaywallView(offering: offering)
+                    Image(systemName: "xmark.circle")
+                        .shadow(radius: 2)
+                        .foregroundStyle(.secondary)
+                        .onTapGesture {
+                            showPaywallView = false
+                        }
+                    .padding()
+                }
+            }
         }
     }
     

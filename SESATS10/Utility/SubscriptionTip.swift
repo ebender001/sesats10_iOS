@@ -10,14 +10,14 @@ import TipKit
 
 struct SubscriptionTip: Tip {
     var title: Text {
-        Text("Subscription Status")
+        Text("AI Subscription")
     }
     
     var message: Text? {
-        Text("Take advantage of artificial intelligence by subscribing.")
+        Text("Tap the \(Image(systemName: "apple.intelligence")) button to take advantage of artificial intelligence by subscribing. There are three great options!")
     }
     
     var image: Image? {
-        Image(systemName: "person.crop.circle")
+        Image(systemName: "info.circle.fill")
     }
 }

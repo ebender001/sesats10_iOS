@@ -14,10 +14,10 @@ struct AITip: Tip {
     }
     
     var message: Text? {
-        Text("Tap the image upper right for AI updates. Swipe down on the subscription offer to dismiss without purchasing.")
+        Text("Tap the \(Image(systemName: "apple.intelligence")) button for AI updates. Three options are available: Monthly, Annually, and Lifetime.")
     }
     
     var image: Image? {
-        Image(systemName: "apple.intelligence")
+        Image(systemName: "info.circle")
     }
 }

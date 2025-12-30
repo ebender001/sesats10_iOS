@@ -14,6 +14,7 @@ import TipKit
 
 @main
 struct SESATS10App: App {
+    @StateObject private var paywallViewModel = PaywallViewModel()
     
     init() {
         try? Tips.configure([
@@ -34,7 +35,10 @@ struct SESATS10App: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                
+                .environmentObject(paywallViewModel)
+                .task {
+                    await paywallViewModel.refresh()
+                }
         }
         .modelContainer(for: Question.self)
     }

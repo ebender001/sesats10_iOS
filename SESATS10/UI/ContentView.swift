@@ -12,10 +12,14 @@ import RevenueCatUI
 import TipKit
 
 struct ContentView: View {
+    @EnvironmentObject var paywallViewModel: PaywallViewModel
+    
     @Environment(\.modelContext) var modelContext
     @Query var questions: [Question]
-    @State private var isCustomerCenterPresented = false
-    @AppStorage(Constants.DISCLAIMER_SHOWN) var disclaimerShown = false
+    @State private var showCustomerCenter = false
+    @State private var errorMessage: String?
+    @State private var loading: Bool = false
+    
     
     var cleanDatabase: Bool {
         questions.filter { !$0.selectedAnswer.isEmpty }.count == 0
@@ -23,9 +27,10 @@ struct ContentView: View {
     
     var topics = Topic.allTopics
     @State var scorecards = Scorecard.allScorecards
-    @State private var showMenu = false
     @State private var showDisclaimer = false
     @State private var showPrivacyPolicy = false
+    @State private var showPaywall = false
+    @State private var offering: Offering?
     
     private let subscriptionTip = SubscriptionTip()
     
@@ -39,41 +44,7 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                List {
-                    TipView(subscriptionTip)
-                    Section(header: Text("Topics")) {
-                        ForEach(topics) { topic in
-                            NavigationLink {
-                                QuestionListView(topic: topic.title)
-                            } label: {
-                                TopicRowView(topic: topic)
-                            }
-                            
-                        }
-                    }
-                    
-                    Section {
-                        ForEach(scorecards) { scorecard in
-                            NavigationLink {
-                                ReviewQuestionListView(
-                                    questions: questions,
-                                    correctlyAnswered: scorecard.title == "Correct" ? true : false)
-                            } label: {
-                                ScorecardRowView(scorecard: scorecard)
-                            }
-                        }
-                    } header: {
-                        Text("Scorecard")
-                    } footer: {
-                        if !cleanDatabase {
-                            Text("Reset database")
-                                .fontWeight(.medium)
-                                .onTapGesture {
-                                    resetDatabase()
-                                }
-                        }
-                    }
-                }
+                topicList
                 .navigationTitle("SESATS 10")
                        .sheet(isPresented: $showDisclaimer) {
                            DisclaimerView()
@@ -81,59 +52,118 @@ struct ContentView: View {
                        .sheet(isPresented: $showPrivacyPolicy) {
                            PrivacyPolicyView()
                        }
-                
             }
-            HStack {
-                Text("Disclaimer")
-                    .padding(.horizontal)
-                    .onTapGesture {
-                        disclaimerShown = true
-                        showDisclaimer.toggle()
-                    }
-                                
-                Text("Privacy Policy")
-                    .padding(.horizontal)
-                    .onTapGesture {
-                        showPrivacyPolicy.toggle()
-                    }
-            }
-            .font(.footnote)
-            .foregroundStyle(.secondary)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        isCustomerCenterPresented.toggle()
-                    } label: {
-                        VStack {
-                            Image(systemName: "person.crop.circle")
-                        }
-                    }
-                }
-            }
-            .sheet(isPresented: $isCustomerCenterPresented, content: {
-                CustomerCenterView()
-                    
-            })
+            footer
             .task {
                 if !dataSeeded {
                     print("Not seeded")
                     seedDatabase()
-                    
                 }
-                
-                //show disclaimer after tip dismissed
-                for await status in subscriptionTip.statusUpdates {
-                    if case .invalidated(let reason) = status {
-                        if reason == .tipClosed {
-                            if !disclaimerShown {
-                                disclaimerShown = true
-                                showDisclaimer.toggle()
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        Task {
+                            let customerInfo = try? await Purchases.shared.customerInfo()
+                            if let customerInfo = customerInfo {
+                                if customerInfo.entitlements[Constants.ENTITLEMENT_ID]?.isActive == true {
+                                    showCustomerCenter.toggle()
+                                } else {
+                                    if let offering = paywallViewModel.offering, !offering.availablePackages.isEmpty {
+                                        showPaywall = true
+                                    } else {
+                                        Task {
+                                            await paywallViewModel.refresh()
+                                        }
+                                    }
+                                }
                             }
+                        }
+                    } label: {
+                        VStack {
+                            Image(systemName: "apple.intelligence")
                         }
                     }
                 }
             }
+            .sheet(isPresented: $showCustomerCenter, content: {
+                CustomerCenterView()
+            })
+            
+            .sheet(isPresented: $showPaywall, content: {
+                if let offering = paywallViewModel.offering {
+                    ZStack(alignment: .topTrailing) {
+                        PaywallView(offering: offering)
+                        Image(systemName: "xmark.circle")
+                            .shadow(radius: 2)
+                            .foregroundStyle(.secondary)
+                            .onTapGesture {
+                                showPaywall = false
+                            }
+                        .padding()
+                    }
+                } else {
+                    ProgressView()
+                }
+            })
+            
         }
+    }
+    
+    var topicList: some View {
+        List {
+            TipView(subscriptionTip)
+            Section(header: Text("Topics")) {
+                ForEach(topics) { topic in
+                    NavigationLink {
+                        QuestionListView(topic: topic.title)
+                    } label: {
+                        TopicRowView(topic: topic)
+                    }
+                    
+                }
+            }
+            
+            Section {
+                ForEach(scorecards) { scorecard in
+                    NavigationLink {
+                        ReviewQuestionListView(
+                            questions: questions,
+                            correctlyAnswered: scorecard.title == "Correct" ? true : false)
+                    } label: {
+                        ScorecardRowView(scorecard: scorecard)
+                    }
+                }
+            } header: {
+                Text("Scorecard")
+            } footer: {
+                if !cleanDatabase {
+                    Text("Reset database")
+                        .fontWeight(.medium)
+                        .onTapGesture {
+                            resetDatabase()
+                        }
+                }
+            }
+        }
+    }
+    
+    var footer: some View {
+        HStack {
+            Text("Disclaimer")
+                .padding(.horizontal)
+                .onTapGesture {
+                    showDisclaimer.toggle()
+                }
+                            
+            Text("Privacy Policy")
+                .padding(.horizontal)
+                .onTapGesture {
+                    showPrivacyPolicy.toggle()
+                }
+        }
+        .font(.footnote)
+        .foregroundStyle(.secondary)
     }
     
     func topicQuestions(topic: String) -> [Question] {
@@ -203,6 +233,6 @@ struct ContentView: View {
     }
 }
 
-#Preview {
-    ContentView()
-}
+//#Preview {
+//    ContentView()
+//}
