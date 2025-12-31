@@ -13,12 +13,13 @@ import TipKit
 
 struct ContentView: View {
     @EnvironmentObject var paywallViewModel: PaywallViewModel
+    @StateObject private var networkChecker = NetworkChecker()
     
     @Environment(\.modelContext) var modelContext
     @Query var questions: [Question]
     @State private var showCustomerCenter = false
     @State private var errorMessage: String?
-    @State private var loading: Bool = false
+//    @State private var loading: Bool = false
     
     
     var cleanDatabase: Bool {
@@ -30,7 +31,8 @@ struct ContentView: View {
     @State private var showDisclaimer = false
     @State private var showPrivacyPolicy = false
     @State private var showPaywall = false
-    @State private var offering: Offering?
+    @State private var showError = false
+    @State private var showNetworkIssue = false
     
     private let subscriptionTip = SubscriptionTip()
     
@@ -63,21 +65,10 @@ struct ContentView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        Task {
-                            let customerInfo = try? await Purchases.shared.customerInfo()
-                            if let customerInfo = customerInfo {
-                                if customerInfo.entitlements[Constants.ENTITLEMENT_ID]?.isActive == true {
-                                    showCustomerCenter.toggle()
-                                } else {
-                                    if let offering = paywallViewModel.offering, !offering.availablePackages.isEmpty {
-                                        showPaywall = true
-                                    } else {
-                                        Task {
-                                            await paywallViewModel.refresh()
-                                        }
-                                    }
-                                }
-                            }
+                        if !networkChecker.connected {
+                            showNetworkIssue.toggle()
+                        } else {
+                            paywall()
                         }
                     } label: {
                         VStack {
@@ -89,14 +80,13 @@ struct ContentView: View {
             .sheet(isPresented: $showCustomerCenter, content: {
                 CustomerCenterView()
             })
-            
             .sheet(isPresented: $showPaywall, content: {
                 if let offering = paywallViewModel.offering {
                     ZStack(alignment: .topTrailing) {
                         PaywallView(offering: offering)
                         Image(systemName: "xmark.circle")
-                            .shadow(radius: 2)
-                            .foregroundStyle(.secondary)
+                            .font(.title)
+                            .foregroundStyle(.gray)
                             .onTapGesture {
                                 showPaywall = false
                             }
@@ -106,7 +96,12 @@ struct ContentView: View {
                     ProgressView()
                 }
             })
-            
+            .alert(isPresented: $showError) {
+                Alert(title: Text("Error"), message: Text(errorMessage ?? "An unknown error occurred. Please try again later."), dismissButton: .default(Text("OK")))
+            }
+            .alert(isPresented: $showNetworkIssue) {
+                Alert(title: Text("Network Error"), message: Text("You are not connected to the internet. Please try again later."), dismissButton: .default(Text("OK")))
+            }
         }
     }
     
@@ -164,6 +159,27 @@ struct ContentView: View {
         }
         .font(.footnote)
         .foregroundStyle(.secondary)
+    }
+    
+    func paywall() {
+        Task {
+            let customerInfo = try? await Purchases.shared.customerInfo()
+            if let customerInfo = customerInfo {
+                if customerInfo.entitlements[Constants.ENTITLEMENT_ID]?.isActive == true {
+                    showCustomerCenter.toggle()
+                } else {
+                    if let offering = paywallViewModel.offering, !offering.availablePackages.isEmpty {
+                        showPaywall = true
+                    } else {
+                        Task {
+                            errorMessage = "Offerings did not load. Please try again later."
+                            showError.toggle()
+                            await paywallViewModel.refresh()
+                        }
+                    }
+                }
+            }
+        }
     }
     
     func topicQuestions(topic: String) -> [Question] {

@@ -12,6 +12,7 @@ import TipKit
 
 struct CritiqueView: View {
     @EnvironmentObject var paywallViewModel: PaywallViewModel
+    @StateObject private var networkChecker = NetworkChecker()
     
     let question: Question
     let aiTip = AITip()
@@ -36,6 +37,7 @@ struct CritiqueView: View {
     @State private var showAIView = false
     @State private var showPaywallAlert = false
     @State private var showPaywallView = false
+    @State private var showNetworkIssue = false
         
     var body: some View {
         Form{
@@ -61,12 +63,16 @@ struct CritiqueView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    Task {
-                        if let customerInfo = try? await Purchases.shared.customerInfo()  {
-                            if customerInfo.entitlements[Constants.ENTITLEMENT_ID]?.isActive == true {
-                                showAIView.toggle()
-                            } else {
-                                showPaywallAlert.toggle()
+                    if !networkChecker.connected {
+                        showNetworkIssue.toggle()
+                    } else {
+                        Task {
+                            if let customerInfo = try? await Purchases.shared.customerInfo()  {
+                                if customerInfo.entitlements[Constants.ENTITLEMENT_ID]?.isActive == true {
+                                    showAIView.toggle()
+                                } else {
+                                    showPaywallAlert.toggle()
+                                }
                             }
                         }
                     }
@@ -79,6 +85,9 @@ struct CritiqueView: View {
         }
         .sheet(isPresented: $showAIView) {
             AIView(question: question)
+        }
+        .alert(isPresented: $showNetworkIssue) {
+            Alert(title: Text("Network Error"), message: Text("You are not connected to the internet. Please try again later."), dismissButton: .default(Text("OK")))
         }
         .alert("Artificial Intelligence", isPresented: $showPaywallAlert) {
             Button("Show Offers") {
@@ -99,8 +108,8 @@ struct CritiqueView: View {
                 ZStack(alignment: .topTrailing) {
                     PaywallView(offering: offering)
                     Image(systemName: "xmark.circle")
-                        .shadow(radius: 2)
-                        .foregroundStyle(.secondary)
+                        .font(.title)
+                        .foregroundStyle(.gray)
                         .onTapGesture {
                             showPaywallView = false
                         }

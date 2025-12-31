@@ -12,4 +12,11 @@ struct Constants {
     static let DISCLAIMER_SHOWN = "disclaimerShown"
     static let API_KEY_PRODUCTION = "appl_nZfVxKXcyTQfBJDkJkkjZcvNRMF"
     static let API_KEY_DEVELOPMENT = "test_PTzKqKBVdiWLXzpaYBdsDlxNnuz"
+    static var API_KEY: String {
+        #if DEBUG
+        return Constants.API_KEY_DEVELOPMENT
+        #else
+        return Constants.API_KEY_PRODUCTION
+        #endif
+    }
 }

@@ -14,7 +14,7 @@ import TipKit
 
 @main
 struct SESATS10App: App {
-    @StateObject private var paywallViewModel = PaywallViewModel()
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     init() {
         try? Tips.configure([
@@ -24,21 +24,12 @@ struct SESATS10App: App {
         let providerFactory = Sesats10AppCheckProviderFactory()
         AppCheck.setAppCheckProviderFactory(providerFactory)
         FirebaseApp.configure()
-        
-        #if DEBUG
-        Purchases.configure(withAPIKey: Constants.API_KEY_DEVELOPMENT)
-        #else
-        Purchases.configure(withAPIKey: Constants.API_KEY_PRODUCTION)
-        #endif
+                
     }
     
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(paywallViewModel)
-                .task {
-                    await paywallViewModel.refresh()
-                }
         }
         .modelContainer(for: Question.self)
     }

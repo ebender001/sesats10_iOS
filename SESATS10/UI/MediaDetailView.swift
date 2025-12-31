@@ -25,17 +25,19 @@ struct MediaDetailView: View {
     var body: some View {
         if mediaType == .image, let image = image {
             NavigationStack {
-                image
-                    .resizable()
-                    .scaledToFit()
-                    .padding()
-                    .toolbar {
-                        Button {
-                            dismiss()
-                        } label: {
-                            Image(systemName: "xmark")
+                ZoomableScrollView {
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .padding()
+                        .toolbar {
+                            Button {
+                                dismiss()
+                            } label: {
+                                Image(systemName: "xmark")
+                            }
                         }
-                    }
+                }
             }
         } else if mediaType == .video {
             NavigationStack {
