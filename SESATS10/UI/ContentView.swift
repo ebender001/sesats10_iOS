@@ -13,7 +13,7 @@ import TipKit
 
 struct ContentView: View {
     @EnvironmentObject var paywallViewModel: PaywallViewModel
-    @StateObject private var networkChecker = NetworkChecker()
+    @StateObject private var networkChecker = NetworkManager()
     
     @Environment(\.modelContext) var modelContext
     @Query var questions: [Question]
@@ -81,26 +81,38 @@ struct ContentView: View {
                 CustomerCenterView()
             })
             .sheet(isPresented: $showPaywall, content: {
-                if let offering = paywallViewModel.offering {
-                    ZStack(alignment: .topTrailing) {
-                        PaywallView(offering: offering)
-                        Image(systemName: "xmark.circle")
-                            .font(.title)
-                            .foregroundStyle(.gray)
-                            .onTapGesture {
-                                showPaywall = false
-                            }
-                        .padding()
-                    }
-                } else {
-                    ProgressView()
-                }
+                paywallSheetContent
             })
             .alert(isPresented: $showError) {
-                Alert(title: Text("Error"), message: Text(errorMessage ?? "An unknown error occurred. Please try again later."), dismissButton: .default(Text("OK")))
+                generateAlert(title: "Error", errorMessage: errorMessage ?? "An unknown error occurred. Please try again later.")
             }
             .alert(isPresented: $showNetworkIssue) {
-                Alert(title: Text("Network Error"), message: Text("You are not connected to the internet. Please try again later."), dismissButton: .default(Text("OK")))
+                generateAlert(title: "Network Error", errorMessage: "You are not connected to the internet. Please try again later.")
+            }
+        }
+    }
+    
+    
+    //MARK: - Components of body
+    func generateAlert(title: String, errorMessage: String) -> Alert {
+        Alert(title: (Text(title)), message: Text(errorMessage), dismissButton: .default(Text("OK")))
+    }
+    
+    var paywallSheetContent: some View {
+        Group {
+            if let offering = paywallViewModel.offering, !offering.availablePackages.isEmpty {
+                ZStack(alignment: .topTrailing) {
+                    PaywallView(offering: offering)
+                    Image(systemName: "xmark.circle")
+                        .font(.title)
+                        .foregroundStyle(.gray)
+                        .onTapGesture {
+                            showPaywall = false
+                        }
+                    .padding()
+                }
+            } else {
+                ProgressView()
             }
         }
     }
@@ -188,6 +200,7 @@ struct ContentView: View {
             .sorted { $0.finalQuestionNumber < $1.finalQuestionNumber }
     }
     
+    //MARK: - Database functions
     func resetDatabase() {
         for question in questions {
             question.answeredCorrectly = false

@@ -12,7 +12,7 @@ import TipKit
 
 struct CritiqueView: View {
     @EnvironmentObject var paywallViewModel: PaywallViewModel
-    @StateObject private var networkChecker = NetworkChecker()
+    @StateObject private var networkChecker = NetworkManager()
     
     let question: Question
     let aiTip = AITip()

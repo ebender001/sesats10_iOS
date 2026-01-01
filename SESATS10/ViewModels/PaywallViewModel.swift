@@ -10,7 +10,7 @@ import RevenueCat
 import RevenueCatUI
 import Combine
 
-class PaywallViewModel: ObservableObject {
+final class PaywallViewModel: ObservableObject {
     @Published var offering: Offering?
     @Published var isLoading = false
     @Published var error: Error?
