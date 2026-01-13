@@ -40,6 +40,6 @@ struct SESATS10App: App {
                     await paywallViewModel.refresh()
                 }
         }
-        .modelContainer(for: Question.self)
+        .modelContainer(for: [Question.self, AIUpdate.self])
     }
 }

@@ -18,6 +18,6 @@ struct SubscriptionTip: Tip {
     }
     
     var image: Image? {
-        Image(systemName: "info.circle.fill")
+        Image(systemName: "info.circle")
     }
 }

@@ -6,11 +6,16 @@
 //
 
 import SwiftUI
+import SwiftData
+import TipKit
 
 struct ReviewQuestionDetailView: View {
     let question: Question
+    private let reviewTip = ReviewTip()
+    @Query var aiUpdates: [AIUpdate]
     @State private var showMediaList = false
     @State private var showCritique = false
+    @State private var showAiUpdate = false
     
     var distractors: [String] {
         [
@@ -29,6 +34,10 @@ struct ReviewQuestionDetailView: View {
         }
     }
     
+    func aiUpdate(for question: Question) -> AIUpdate? {
+        aiUpdates.filter( { question.id == $0.id }).first
+    }
+    
     var body: some View {
         questionDetail
             .navigationDestination(isPresented: $showMediaList) {
@@ -37,10 +46,17 @@ struct ReviewQuestionDetailView: View {
             .navigationDestination(isPresented: $showCritique) {
                 CritiqueView(question: question)
             }
+            .navigationDestination(isPresented: $showAiUpdate) {
+                AIDetailView(question: question, aiUpdate: aiUpdate(for: question) ??
+                             AIUpdate(id: question.id, text: "AI update failed.", date: .now))
+            }
     }
     
     var questionDetail: some View {
         VStack(spacing: 0) {
+            if aiUpdate(for: question) != nil {
+                TipView(reviewTip)
+            }
             ScrollView {
                 Text(question.questionText)
                     .padding(.bottom, 8)
@@ -74,8 +90,17 @@ struct ReviewQuestionDetailView: View {
             }
             
             if !question.critique.isEmpty {
-                Button("Critique") {
-                    showCritique.toggle()
+                if aiUpdate(for: question) != nil {
+                    Button {
+                        showAiUpdate.toggle()
+                    } label: {
+                        Image(systemName: "apple.intelligence")
+                    }
+
+                } else {
+                    Button("Critique") {
+                        showCritique.toggle()
+                    }
                 }
             }
         }

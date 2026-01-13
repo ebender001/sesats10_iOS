@@ -13,24 +13,27 @@ import TipKit
 
 struct ContentView: View {
     @EnvironmentObject var paywallViewModel: PaywallViewModel
-    
     @Environment(\.modelContext) var modelContext
+    
     @Query var questions: [Question]
+    @Query var aiUpdates: [AIUpdate]
+    
     @State private var showCustomerCenter = false
     @State private var errorMessage: String?
     @State private var loading: Bool = false
-    
-    
-    var cleanDatabase: Bool {
-        questions.filter { !$0.selectedAnswer.isEmpty }.count == 0
-    }
-    
-    var topics = Topic.allTopics
     @State var scorecards = Scorecard.allScorecards
     @State private var showDisclaimer = false
     @State private var showPrivacyPolicy = false
     @State private var showPaywall = false
     @State private var offering: Offering?
+    @State private var showResetConfirmation = false
+    
+    var databaseIsClean: Bool {
+        questions.filter { !$0.selectedAnswer.isEmpty }.count == 0
+    }
+    
+    var topics = Topic.allTopics
+    
     
     private let subscriptionTip = SubscriptionTip()
     
@@ -55,6 +58,8 @@ struct ContentView: View {
             }
             footer
             .task {
+                print("TASK")
+                print("AI Update count: \(aiUpdates.count)")
                 if !dataSeeded {
                     print("Not seeded")
                     seedDatabase()
@@ -134,17 +139,28 @@ struct ContentView: View {
                         ScorecardRowView(scorecard: scorecard)
                     }
                 }
+//                NavigationLink {
+//                    AIQuestionListView()
+//                } label: {
+//                    AIRowView()
+//                }
             } header: {
                 Text("Scorecard")
             } footer: {
-                if !cleanDatabase {
+                if !databaseIsClean {
                     Text("Reset database")
                         .fontWeight(.medium)
                         .onTapGesture {
-                            resetDatabase()
+                            showResetConfirmation.toggle()
                         }
                 }
             }
+        }
+        .alert(isPresented: $showResetConfirmation) {
+            Alert(title: Text("Reset Database"),
+                  message: Text("All of your answers and saved updates will be deleted."),
+                  primaryButton: .destructive(Text("OK"), action: resetDatabase),
+                  secondaryButton: .cancel())
         }
     }
     
@@ -179,6 +195,7 @@ struct ContentView: View {
             question.selectedAnswer = ""
         }
         do {
+            try deleteAll(of: AIUpdate.self, in: modelContext)
             try modelContext.save()
         } catch {
             print("Failed to reset database: \(error.localizedDescription)")

@@ -9,13 +9,16 @@ import SwiftUI
 import FirebaseAILogic
 import RevenueCat
 import RevenueCatUI
+import SwiftData
 
 struct AIView: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.modelContext) var modelContext
     
     let question: Question
-    @State private var responseText = ""
     @StateObject private var viewModel = AIViewModel()
+    @State private var showAlert = false
+    @State private var alertMessage = ""
     
     var correctAnswer: String {
         switch question.correctAnswer.lowercased() {
@@ -88,6 +91,19 @@ struct AIView: View {
                         }
                     }
                 }
+                .alert("AI Update",
+                       isPresented: $showAlert,
+                       actions: {
+                    Button("Dismiss") {
+                        dismiss()
+                    }
+                }, message: {
+                    Text(alertMessage)
+                })
+                
+                .alert(isPresented: $showAlert) {
+                    Alert(title: Text(alertMessage))
+                }
             }
             .onAppear {
                 generateAI()
@@ -98,15 +114,37 @@ struct AIView: View {
             .navigationTitle("Update")
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button("Dismiss") {
+                        Button {
                             dismiss()
+                        } label: {
+                            Image(systemName: "xmark")
                         }
+                    }
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button {
+                            saveAIUpdate()
+                        } label: {
+                            Text("Save")
+                        }
+                        .disabled(viewModel.responseText.isEmpty)
                     }
                 }
         }
-//        .task {
-//            generateAI()
-//        }
+    }
+    
+    private func saveAIUpdate() {
+        guard !question.id.isEmpty, !viewModel.responseText.isEmpty else { return }
+        do {
+            let aiUpdate = AIUpdate(id: question.id, text: viewModel.responseText, date: .now)
+            modelContext.insert(aiUpdate)
+            try modelContext.save()
+            alertMessage = "AI Update Saved"
+            showAlert.toggle()
+        } catch {
+            print("Could not save \(question.id): \(error)")
+            alertMessage = "Failed to save AI Update: \(error.localizedDescription)"
+            showAlert.toggle()
+        }
     }
     
     private func generateAI() {

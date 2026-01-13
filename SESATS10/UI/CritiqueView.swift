@@ -9,6 +9,7 @@ import SwiftUI
 import RevenueCat
 import RevenueCatUI
 import TipKit
+internal import StoreKit
 
 struct CritiqueView: View {
     @EnvironmentObject var paywallViewModel: PaywallViewModel
