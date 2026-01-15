@@ -37,6 +37,7 @@ struct CritiqueView: View {
     @State private var showAIView = false
     @State private var showPaywallAlert = false
     @State private var showPaywallView = false
+    @State private var showAIComingSoon = false
         
     var body: some View {
         Form{
@@ -68,6 +69,7 @@ struct CritiqueView: View {
                                 showAIView.toggle()
                             } else {
                                 showPaywallAlert.toggle()
+//                                showAIComingSoon.toggle()
                             }
                         }
                     }
@@ -81,12 +83,16 @@ struct CritiqueView: View {
         .sheet(isPresented: $showAIView) {
             AIView(question: question)
         }
+        .alert(isPresented: $showAIComingSoon) {
+            Alert(title: Text("SESATS 10 AI"), message: Text("The AI component is coming soon. Stay tuned!"), dismissButton: .cancel())
+        }
         .alert("Artificial Intelligence", isPresented: $showPaywallAlert) {
             Button("Show Offers") {
                 if let offering = paywallViewModel.offering, !offering.availablePackages.isEmpty {
                     showPaywallView = true
                 } else {
                     Task {
+                        showAIComingSoon.toggle()
                         await paywallViewModel.refresh()
                     }
                 }

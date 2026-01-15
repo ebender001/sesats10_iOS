@@ -27,6 +27,7 @@ struct ContentView: View {
     @State private var showPaywall = false
     @State private var offering: Offering?
     @State private var showResetConfirmation = false
+    @State private var showAIComingSoon = false
     
     var databaseIsClean: Bool {
         questions.filter { !$0.selectedAnswer.isEmpty }.count == 0
@@ -69,20 +70,34 @@ struct ContentView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         Task {
-                            let customerInfo = try? await Purchases.shared.customerInfo()
-                            if let customerInfo = customerInfo {
-                                if customerInfo.entitlements[Constants.ENTITLEMENT_ID]?.isActive == true {
-                                    showCustomerCenter.toggle()
+                            guard let customerInfo = try? await Purchases.shared.customerInfo() else {
+                                showAIComingSoon.toggle()
+                                return
+                            }
+                            if customerInfo.entitlements[Constants.ENTITLEMENT_ID]?.isActive == true {
+                                showCustomerCenter.toggle()
+                            } else {
+                                if let offering = paywallViewModel.offering, !offering.availablePackages.isEmpty {
+                                    showPaywall = true
                                 } else {
-                                    if let offering = paywallViewModel.offering, !offering.availablePackages.isEmpty {
-                                        showPaywall = true
-                                    } else {
-                                        Task {
-                                            await paywallViewModel.refresh()
-                                        }
+                                    Task {
+                                        await paywallViewModel.refresh()
                                     }
                                 }
                             }
+//                            if let customerInfo = customerInfo {
+//                                if customerInfo.entitlements[Constants.ENTITLEMENT_ID]?.isActive == true {
+//                                    showCustomerCenter.toggle()
+//                                } else {
+//                                    if let offering = paywallViewModel.offering, !offering.availablePackages.isEmpty {
+//                                        showPaywall = true
+//                                    } else {
+//                                        Task {
+//                                            await paywallViewModel.refresh()
+//                                        }
+//                                    }
+//                                }
+//                            }
                         }
                     } label: {
                         VStack {
@@ -111,6 +126,9 @@ struct ContentView: View {
                     ProgressView()
                 }
             })
+            .alert(isPresented: $showAIComingSoon) {
+                Alert(title: Text("SESATS 10 AI"), message: Text("The AI component is coming soon. Stay tuned!"), dismissButton: .cancel())
+            }
             
         }
     }
@@ -139,11 +157,6 @@ struct ContentView: View {
                         ScorecardRowView(scorecard: scorecard)
                     }
                 }
-//                NavigationLink {
-//                    AIQuestionListView()
-//                } label: {
-//                    AIRowView()
-//                }
             } header: {
                 Text("Scorecard")
             } footer: {
