@@ -69,7 +69,6 @@ struct CritiqueView: View {
                                 showAIView.toggle()
                             } else {
                                 showPaywallAlert.toggle()
-//                                showAIComingSoon.toggle()
                             }
                         }
                     }

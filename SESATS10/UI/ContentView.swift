@@ -81,6 +81,7 @@ struct ContentView: View {
                                     showPaywall = true
                                 } else {
                                     Task {
+                                        showAIComingSoon.toggle()
                                         await paywallViewModel.refresh()
                                     }
                                 }
