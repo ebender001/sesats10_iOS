@@ -70,6 +70,8 @@ struct CritiqueView: View {
                             } else {
                                 showPaywallAlert.toggle()
                             }
+                        } else {
+                            showAIComingSoon.toggle()
                         }
                     }
                 } label: {
@@ -100,7 +102,9 @@ struct CritiqueView: View {
         } message: {
             Text("The artificial intelligence component is not available. Please purchase a subscription to access this feature.")
         }
-        .sheet(isPresented: $showPaywallView) {
+        .sheet(isPresented: $showPaywallView, onDismiss: {
+            showAIComingSoon = false
+        }) {
             if let offering = paywallViewModel.offering {
                 ZStack(alignment: .topTrailing) {
                     PaywallView(offering: offering)

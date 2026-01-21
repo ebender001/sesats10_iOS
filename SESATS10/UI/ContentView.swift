@@ -29,6 +29,10 @@ struct ContentView: View {
     @State private var showResetConfirmation = false
     @State private var showAIComingSoon = false
     
+    #if DEBUG
+    @AppStorage("debugForceAIComingSoon") private var debugForceAIComingSoon: Bool = false
+    #endif
+    
     var databaseIsClean: Bool {
         questions.filter { !$0.selectedAnswer.isEmpty }.count == 0
     }
@@ -70,6 +74,13 @@ struct ContentView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         Task {
+                            #if DEBUG
+                            if debugForceAIComingSoon {
+                                showAIComingSoon = true
+                                return
+                            }
+                            #endif
+                            
                             guard let customerInfo = try? await Purchases.shared.customerInfo() else {
                                 showAIComingSoon.toggle()
                                 return
@@ -86,24 +97,25 @@ struct ContentView: View {
                                     }
                                 }
                             }
-//                            if let customerInfo = customerInfo {
-//                                if customerInfo.entitlements[Constants.ENTITLEMENT_ID]?.isActive == true {
-//                                    showCustomerCenter.toggle()
-//                                } else {
-//                                    if let offering = paywallViewModel.offering, !offering.availablePackages.isEmpty {
-//                                        showPaywall = true
-//                                    } else {
-//                                        Task {
-//                                            await paywallViewModel.refresh()
-//                                        }
-//                                    }
-//                                }
-//                            }
                         }
                     } label: {
                         VStack {
                             Image(systemName: "apple.intelligence")
                         }
+                        #if DEBUG
+                        .contextMenu {
+                            Button {
+                                debugForceAIComingSoon.toggle()
+                            } label: {
+                                Label(
+                                    debugForceAIComingSoon ? "Disable AI Coming Soon override" :
+                                        "Force AI Coming Soon",
+                                    systemImage: debugForceAIComingSoon ? "checkmark.circle" :
+                                        "exclamationmark.triangle"
+                                )
+                            }
+                        }
+                        #endif
                     }
                 }
             }

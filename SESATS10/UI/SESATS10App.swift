@@ -14,9 +14,12 @@ import TipKit
 
 @main
 struct SESATS10App: App {
-    @StateObject private var paywallViewModel = PaywallViewModel()
+    @StateObject private var paywallViewModel: PaywallViewModel
     
     init() {
+        let vm = PaywallViewModel()
+        _paywallViewModel = StateObject(wrappedValue: vm)
+        
         try? Tips.configure([
             .displayFrequency(.immediate),
             .datastoreLocation(.applicationDefault)
@@ -30,15 +33,16 @@ struct SESATS10App: App {
         #else
         Purchases.configure(withAPIKey: Constants.API_KEY_PRODUCTION)
         #endif
+        
+        Task { @MainActor in
+            await vm.refresh()
+        }
     }
     
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(paywallViewModel)
-                .task {
-                    await paywallViewModel.refresh()
-                }
         }
         .modelContainer(for: [Question.self, AIUpdate.self])
     }
