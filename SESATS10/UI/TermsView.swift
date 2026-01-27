@@ -1,22 +1,22 @@
 //
-//  PrivacyPolicyView.swift
+//  TermsView.swift
 //  SESATS10
 //
-//  Created by Edward Bender on 12/21/25.
+//  Created by Edward Bender on 1/27/26.
 //
 
 import SwiftUI
 
-struct PrivacyPolicyView: View {
+struct TermsView: View {
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
         NavigationStack {
             VStack {
-                Text("Privacy Policy")
+                Text("Terms of Use")
                     .font(.title.bold())
                 Divider()
-                WebView(html: privacyString)
+                WebView(html: termsString)
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -29,9 +29,8 @@ struct PrivacyPolicyView: View {
             }
         }
     }
-    
 }
 
 #Preview {
-    PrivacyPolicyView()
+    TermsView()
 }

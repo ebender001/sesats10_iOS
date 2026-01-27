@@ -6,16 +6,14 @@
 //
 
 import SwiftUI
-import RevenueCat
-import RevenueCatUI
 import TipKit
-internal import StoreKit
+import StoreKit
 
 struct CritiqueView: View {
-    @EnvironmentObject var paywallViewModel: PaywallViewModel
     
     let question: Question
     let aiTip = AITip()
+    @EnvironmentObject var entitlements: EntitlementManager
     
     var distractors: [String] {
         [
@@ -35,9 +33,7 @@ struct CritiqueView: View {
     }
     
     @State private var showAIView = false
-    @State private var showPaywallAlert = false
-    @State private var showPaywallView = false
-    @State private var showAIComingSoon = false
+    @State private var showPaywall = false
         
     var body: some View {
         Form{
@@ -63,16 +59,10 @@ struct CritiqueView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    Task {
-                        if let customerInfo = try? await Purchases.shared.customerInfo()  {
-                            if customerInfo.entitlements[Constants.ENTITLEMENT_ID]?.isActive == true {
-                                showAIView.toggle()
-                            } else {
-                                showPaywallAlert.toggle()
-                            }
-                        } else {
-                            showAIComingSoon.toggle()
-                        }
+                    if entitlements.hasAIAccess {
+                        showAIView = true
+                    } else {
+                        showPaywall = true
                     }
                 } label: {
                     VStack {
@@ -81,43 +71,25 @@ struct CritiqueView: View {
                 }
             }
         }
+        .sheet(isPresented: $showPaywall, onDismiss: {
+            Task {
+                await entitlements.refresh()
+                if entitlements.hasAIAccess {
+                    showAIView = true
+                }
+            }
+        }) {
+            PaywallView(productIDs: [
+                "com.cvoffice.sesats10.month",
+                "com.cvoffice.sesats10.annual",
+                "com.cvoffice.sesats10.lifetime"
+            ])
+            .environmentObject(entitlements)
+        }
         .sheet(isPresented: $showAIView) {
             AIView(question: question)
         }
-        .alert(isPresented: $showAIComingSoon) {
-            Alert(title: Text("SESATS 10 AI"), message: Text("The AI component is coming soon. Stay tuned!"), dismissButton: .cancel())
-        }
-        .alert("Artificial Intelligence", isPresented: $showPaywallAlert) {
-            Button("Show Offers") {
-                if let offering = paywallViewModel.offering, !offering.availablePackages.isEmpty {
-                    showPaywallView = true
-                } else {
-                    Task {
-                        showAIComingSoon.toggle()
-                        await paywallViewModel.refresh()
-                    }
-                }
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("The artificial intelligence component is not available. Please purchase a subscription to access this feature.")
-        }
-        .sheet(isPresented: $showPaywallView, onDismiss: {
-            showAIComingSoon = false
-        }) {
-            if let offering = paywallViewModel.offering {
-                ZStack(alignment: .topTrailing) {
-                    PaywallView(offering: offering)
-                    Image(systemName: "xmark.circle")
-                        .shadow(radius: 2)
-                        .foregroundStyle(.secondary)
-                        .onTapGesture {
-                            showPaywallView = false
-                        }
-                    .padding()
-                }
-            }
-        }
+        
     }
     
     func displayCorrectAnswer() -> String {

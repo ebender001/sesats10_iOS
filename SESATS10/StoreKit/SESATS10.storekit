@@ -1,0 +1,121 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "en_US",
+        "policyText" : "",
+        "policyURL" : ""
+      }
+    ]
+  },
+  "identifier" : "062D27C0",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "24.99",
+      "familyShareable" : false,
+      "internalID" : "6757131149",
+      "localizations" : [
+        {
+          "description" : "Permanently unlock access to the AI features.",
+          "displayName" : "AI Features - One-Time Unlock",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.cvoffice.sesats10.lifetime",
+      "referenceName" : "Lifetime subscription",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "1528818078",
+    "_askToBuyEnabled" : false,
+    "_billingGracePeriodEnabled" : false,
+    "_billingIssuesEnabled" : false,
+    "_developerTeamID" : "F294KH4KNP",
+    "_disableDialogs" : false,
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 791220299.22107303,
+    "_locale" : "en_US",
+    "_renewalBillingIssuesEnabled" : false,
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ],
+    "_timeRate" : 0
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21870823",
+      "localizations" : [
+
+      ],
+      "name" : "SESATS 10 Subscriptions",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "19.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6757130274",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Access AI-powered features for one year",
+              "displayName" : "AI Features - Annual Access",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.cvoffice.sesats10.annual",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Annual subscription",
+          "subscriptionGroupID" : "21870823",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "1.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "6757131132",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Access AI-powered features for one month.",
+              "displayName" : "AI Features - Monthly Access",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.cvoffice.sesats10.month",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Monthly subscription",
+          "subscriptionGroupID" : "21870823",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

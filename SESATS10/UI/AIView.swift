@@ -7,8 +7,6 @@
 
 import SwiftUI
 import FirebaseAILogic
-import RevenueCat
-import RevenueCatUI
 import SwiftData
 
 struct AIView: View {

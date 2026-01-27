@@ -9,17 +9,13 @@ import SwiftUI
 import SwiftData
 import Firebase
 import FirebaseAppCheck
-import RevenueCat
 import TipKit
 
 @main
 struct SESATS10App: App {
-    @StateObject private var paywallViewModel: PaywallViewModel
+    @StateObject private var entitlements = EntitlementManager()
     
     init() {
-        let vm = PaywallViewModel()
-        _paywallViewModel = StateObject(wrappedValue: vm)
-        
         try? Tips.configure([
             .displayFrequency(.immediate),
             .datastoreLocation(.applicationDefault)
@@ -28,21 +24,13 @@ struct SESATS10App: App {
         AppCheck.setAppCheckProviderFactory(providerFactory)
         FirebaseApp.configure()
         
-        #if DEBUG
-        Purchases.configure(withAPIKey: Constants.API_KEY_DEVELOPMENT)
-        #else
-        Purchases.configure(withAPIKey: Constants.API_KEY_PRODUCTION)
-        #endif
-        
-        Task { @MainActor in
-            await vm.refresh()
-        }
     }
     
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(paywallViewModel)
+                .environmentObject(entitlements)
+                .task { entitlements.start() }
         }
         .modelContainer(for: [Question.self, AIUpdate.self])
     }

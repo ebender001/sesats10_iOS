@@ -7,13 +7,12 @@
 
 import SwiftUI
 import SwiftData
-import RevenueCat
-import RevenueCatUI
 import TipKit
+import StoreKit
 
 struct ContentView: View {
-    @EnvironmentObject var paywallViewModel: PaywallViewModel
     @Environment(\.modelContext) var modelContext
+    @EnvironmentObject var entitlements: EntitlementManager
     
     @Query var questions: [Question]
     @Query var aiUpdates: [AIUpdate]
@@ -24,21 +23,15 @@ struct ContentView: View {
     @State var scorecards = Scorecard.allScorecards
     @State private var showDisclaimer = false
     @State private var showPrivacyPolicy = false
-    @State private var showPaywall = false
-    @State private var offering: Offering?
     @State private var showResetConfirmation = false
-    @State private var showAIComingSoon = false
-    
-    #if DEBUG
-    @AppStorage("debugForceAIComingSoon") private var debugForceAIComingSoon: Bool = false
-    #endif
+    @State private var showSubscriptionStore: Bool = false
+    @State private var showManageSubscriptions = false
     
     var databaseIsClean: Bool {
         questions.filter { !$0.selectedAnswer.isEmpty }.count == 0
     }
     
     var topics = Topic.allTopics
-    
     
     private let subscriptionTip = SubscriptionTip()
     
@@ -63,8 +56,6 @@ struct ContentView: View {
             }
             footer
             .task {
-                print("TASK")
-                print("AI Update count: \(aiUpdates.count)")
                 if !dataSeeded {
                     print("Not seeded")
                     seedDatabase()
@@ -73,76 +64,27 @@ struct ContentView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        Task {
-                            #if DEBUG
-                            if debugForceAIComingSoon {
-                                showAIComingSoon = true
-                                return
-                            }
-                            #endif
-                            
-                            guard let customerInfo = try? await Purchases.shared.customerInfo() else {
-                                showAIComingSoon.toggle()
-                                return
-                            }
-                            if customerInfo.entitlements[Constants.ENTITLEMENT_ID]?.isActive == true {
-                                showCustomerCenter.toggle()
-                            } else {
-                                if let offering = paywallViewModel.offering, !offering.availablePackages.isEmpty {
-                                    showPaywall = true
-                                } else {
-                                    Task {
-                                        showAIComingSoon.toggle()
-                                        await paywallViewModel.refresh()
-                                    }
-                                }
-                            }
+                        if entitlements.hasAIAccess {
+                            showManageSubscriptions = true
+                        } else {
+                            showSubscriptionStore = true
                         }
                     } label: {
-                        VStack {
-                            Image(systemName: "apple.intelligence")
-                        }
-                        #if DEBUG
-                        .contextMenu {
-                            Button {
-                                debugForceAIComingSoon.toggle()
-                            } label: {
-                                Label(
-                                    debugForceAIComingSoon ? "Disable AI Coming Soon override" :
-                                        "Force AI Coming Soon",
-                                    systemImage: debugForceAIComingSoon ? "checkmark.circle" :
-                                        "exclamationmark.triangle"
-                                )
-                            }
-                        }
-                        #endif
+                        Image(systemName: "apple.intelligence")
                     }
                 }
             }
-            .sheet(isPresented: $showCustomerCenter, content: {
-                CustomerCenterView()
-            })
-            
-            .sheet(isPresented: $showPaywall, content: {
-                if let offering = paywallViewModel.offering {
-                    ZStack(alignment: .topTrailing) {
-                        PaywallView(offering: offering)
-                        Image(systemName: "xmark.circle")
-                            .shadow(radius: 2)
-                            .foregroundStyle(.secondary)
-                            .onTapGesture {
-                                showPaywall = false
-                            }
-                        .padding()
-                    }
-                } else {
-                    ProgressView()
-                }
-            })
-            .alert(isPresented: $showAIComingSoon) {
-                Alert(title: Text("SESATS 10 AI"), message: Text("The AI component is coming soon. Stay tuned!"), dismissButton: .cancel())
+            .sheet(isPresented: $showSubscriptionStore, onDismiss: {
+                Task { await entitlements.refresh() }
+            }) {
+                PaywallView(productIDs: [
+                    "com.cvoffice.sesats10.month",
+                    "com.cvoffice.sesats10.annual",
+                    "com.cvoffice.sesats10.lifetime"
+                ])
+                .environmentObject(entitlements)
             }
-            
+            .manageSubscriptionsSheet(isPresented: $showManageSubscriptions)
         }
     }
     
