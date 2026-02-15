@@ -25,11 +25,16 @@ struct ReviewQuestionListView: View {
     
     var body: some View {
         if selectedQuestions.isEmpty {
-            ContentUnavailableView(
-                "Review Questions",
-                systemImage: "list.bullet",
-                description: Text("No \(correctlyAnswered ? "correctly" : "incorrectly") answered questions to display.")
-            )
+            ZStack {
+                Theme.bg
+                    .ignoresSafeArea()
+
+                ContentUnavailableView(
+                    "Review Questions",
+                    systemImage: "list.bullet",
+                    description: Text("No \(correctlyAnswered ? "correctly" : "incorrectly") answered questions to display.")
+                )
+            }
             .navigationTitle(
                 correctlyAnswered ?
                 "Answered Correctly" :
@@ -37,15 +42,36 @@ struct ReviewQuestionListView: View {
             )
             .navigationBarTitleDisplayMode(.inline)
         } else {
-            List {
-                ForEach(selectedQuestions) { question in
-                    NavigationLink {
-                        ReviewQuestionDetailView(question: question)
-                    } label: {
-                        Text(question.questionText)
-                            .multilineTextAlignment(.leading)
-                            .lineLimit(4)
+            ZStack {
+                Theme.bg
+                    .ignoresSafeArea()
+
+                ScrollView {
+                    LazyVStack(spacing: 14) {
+                        ForEach(selectedQuestions) { question in
+                            NavigationLink {
+                                ReviewQuestionDetailView(question: question)
+                            } label: {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text(question.questionText)
+                                        .font(.headline)
+                                        .foregroundStyle(.primary)
+                                        .multilineTextAlignment(.leading)
+                                        .lineLimit(4)
+
+//                                    Text("Question \(question.finalQuestionNumber)")
+//                                        .font(.footnote)
+//                                        .foregroundStyle(Theme.textSecondary)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .cardStyle()
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                    .padding(.bottom, 20)
                 }
             }
             .navigationTitle(
@@ -54,6 +80,7 @@ struct ReviewQuestionListView: View {
                 "Answered Incorrectly"
             )
             .navigationBarTitleDisplayMode(.inline)
+            .tint(Theme.accent)
         }
         
     }

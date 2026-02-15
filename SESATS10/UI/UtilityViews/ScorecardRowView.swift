@@ -20,19 +20,48 @@ struct ScorecardRowView: View {
         questions.filter { $0.answeredIncorrectly }.count
     }
     
+    private var count: Int {
+        scorecard.title == "Correct" ? correctAnswersCount : incorrectAnswersCount
+    }
+
+    private var iconTint: Color {
+        switch scorecard.title {
+        case "Correct":
+            return Theme.success
+        case "Incorrect":
+            return Theme.error
+        default:
+            return Theme.accent
+        }
+    }
+
     var body: some View {
-        HStack {
-            Image(scorecard.imageString)
-                .resizable()
-                .frame(width: 40, height: 40)
-                .padding(.horizontal)
+        HStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(iconTint.opacity(0.12))
+
+                Image(scorecard.imageString)
+                    .renderingMode(.template)
+                    .resizable()
+                    .scaledToFit()
+                    .padding(10)
+                    .foregroundStyle(iconTint)
+            }
+            .frame(width: 44, height: 44)
+
             Text(scorecard.title)
                 .font(.headline)
-                .fontWeight(.bold)
-            Spacer()
-            let count = (scorecard.title == "Correct" ? correctAnswersCount : incorrectAnswersCount)
+                .foregroundStyle(.primary)
+
+            Spacer(minLength: 0)
+
             Text("\(count) question\(count == 1 ? "" : "s")")
+                .font(.subheadline)
+                .foregroundStyle(Theme.textSecondary)
         }
+        .cardStyle()
+        .contentShape(Rectangle())
     }
 }
 

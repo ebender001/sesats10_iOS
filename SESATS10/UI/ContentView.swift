@@ -26,6 +26,13 @@ struct ContentView: View {
     @State private var showResetConfirmation = false
     @State private var showSubscriptionStore: Bool = false
     @State private var showManageSubscriptions = false
+
+    private enum Route: Hashable {
+        case topic(String)
+        case scorecard(correct: Bool)
+    }
+
+    @State private var path = NavigationPath()
     
     var databaseIsClean: Bool {
         questions.filter { !$0.selectedAnswer.isEmpty }.count == 0
@@ -43,18 +50,24 @@ struct ContentView: View {
     }
     
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             ZStack {
+                Theme.bg
+                    .ignoresSafeArea()
+
                 topicList
-                .navigationTitle("SESATS 10")
-                       .sheet(isPresented: $showDisclaimer) {
-                           DisclaimerView()
-                       }
-                       .sheet(isPresented: $showPrivacyPolicy) {
-                           PrivacyPolicyView()
-                       }
+                    .navigationTitle("SESATS 10")
+                    .navigationBarTitleDisplayMode(.large)
+                    .sheet(isPresented: $showDisclaimer) {
+                        DisclaimerView()
+                    }
+                    .sheet(isPresented: $showPrivacyPolicy) {
+                        PrivacyPolicyView()
+                    }
+                    .safeAreaInset(edge: .bottom, spacing: 0) {
+                        footer
+                    }
             }
-            footer
             .task {
                 if !dataSeeded {
                     print("Not seeded")
@@ -84,35 +97,52 @@ struct ContentView: View {
                 .environmentObject(entitlements)
             }
             .manageSubscriptionsSheet(isPresented: $showManageSubscriptions)
+            .navigationDestination(for: Route.self) { route in
+                switch route {
+                case .topic(let title):
+                    QuestionListView(topic: title)
+                case .scorecard(let correct):
+                    ReviewQuestionListView(questions: questions, correctlyAnswered: correct)
+                }
+            }
         }
     }
     
     var topicList: some View {
         List {
             TipView(subscriptionTip)
-            Section(header: Text("Topics")) {
+            Section {
                 ForEach(topics) { topic in
-                    NavigationLink {
-                        QuestionListView(topic: topic.title)
+                    Button {
+                        path.append(Route.topic(topic.title))
                     } label: {
                         TopicRowView(topic: topic)
                     }
-                    
+                    .buttonStyle(.plain)
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
                 }
+            } header: {
+                Text("Topics")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
             }
             
             Section {
                 ForEach(scorecards) { scorecard in
-                    NavigationLink {
-                        ReviewQuestionListView(
-                            questions: questions,
-                            correctlyAnswered: scorecard.title == "Correct" ? true : false)
+                    Button {
+                        path.append(Route.scorecard(correct: scorecard.title == "Correct"))
                     } label: {
                         ScorecardRowView(scorecard: scorecard)
                     }
+                    .buttonStyle(.plain)
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
                 }
             } header: {
                 Text("Scorecard")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
             } footer: {
                 if !databaseIsClean {
                     Text("Reset database")
@@ -123,30 +153,43 @@ struct ContentView: View {
                 }
             }
         }
+        .listRowSeparator(.hidden)
+        .listSectionSeparator(.hidden)
         .alert(isPresented: $showResetConfirmation) {
             Alert(title: Text("Reset Database"),
                   message: Text("All of your answers and saved updates will be deleted."),
                   primaryButton: .destructive(Text("OK"), action: resetDatabase),
                   secondaryButton: .cancel())
         }
+        .scrollContentBackground(.hidden)
+        .background(Theme.bg)
+        .listStyle(.insetGrouped)
+        .tint(Theme.accent)
     }
     
     var footer: some View {
-        HStack {
-            Text("Disclaimer")
-                .padding(.horizontal)
-                .onTapGesture {
-                    showDisclaimer.toggle()
-                }
-                            
-            Text("Privacy Policy")
-                .padding(.horizontal)
-                .onTapGesture {
-                    showPrivacyPolicy.toggle()
-                }
+        HStack(spacing: 18) {
+            Button {
+                showDisclaimer.toggle()
+            } label: {
+                Text("Disclaimer")
+            }
+
+            Text("•")
+                .foregroundStyle(Theme.textSecondary)
+
+            Button {
+                showPrivacyPolicy.toggle()
+            } label: {
+                Text("Privacy Policy")
+            }
         }
         .font(.footnote)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(Theme.textSecondary)
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity)
+        .background(Theme.bg)
+        .overlay(Divider().opacity(0.4), alignment: .top)
     }
     
     func topicQuestions(topic: String) -> [Question] {
@@ -216,7 +259,3 @@ struct ContentView: View {
         }
     }
 }
-
-//#Preview {
-//    ContentView()
-//}

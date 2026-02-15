@@ -10,44 +10,37 @@ import SwiftUI
 struct MediaListView: View {
     
     let question: Question
-    @State private var selectedMedia: String = ""
-    @State private var mediaType: MediaType = .image
-    @State private var showMedia = false
+    @State private var selection: MediaSelection? = nil
     
     var body: some View {
         List {
             ForEach(Array(question.questionImageAssets.enumerated()), id: \.offset) { index, asset in
                 Text("Image \(index + 1)")
                     .onTapGesture {
-                        selectedMedia = asset
-                        mediaType = .image
-                        showMedia = true
-                    }
-                    .sheet(isPresented: $showMedia) {
-                        MediaDetailView(media: $selectedMedia, mediaType: .image)
+                        selection = MediaSelection(name: asset, type: .image)
                     }
             }
             ForEach(Array(question.questionMovieAssets.enumerated()), id: \.offset) { index, asset in
                 Text("Video \(index + 1)")
                     .onTapGesture {
-                        selectedMedia = asset
-                        mediaType = .video
-                        showMedia = true
-                    }
-                    .sheet(isPresented: $showMedia) {
-                        MediaDetailView(media: $selectedMedia, mediaType: .video)
+                        selection = MediaSelection(name: asset, type: .video)
                     }
             }
         }
-//        .sheet(isPresented: $showMedia) {
-//            if let media = selectedMedia, let type = mediaType {
-//                MediaDetailView(media: media, mediaType: type)
-//            }
-//        }
+        .sheet(item: $selection) { sel in
+            // Use a constant binding so the detail view doesn't depend on transient state changes.
+            MediaDetailView(media: .constant(sel.name), mediaType: sel.type)
+        }
         .navigationTitle("Media")
         
         
     }
+}
+
+struct MediaSelection: Identifiable {
+    let id = UUID()
+    let name: String
+    let type: MediaType
 }
 
 enum MediaType {

@@ -7,55 +7,69 @@
 
 import SwiftUI
 import TipKit
-import StoreKit
 
 struct CritiqueView: View {
-    
+
     let question: Question
     let aiTip = AITip()
+
     @EnvironmentObject var entitlements: EntitlementManager
-    
-    var distractors: [String] {
-        [
-            question.distractorA,
-            question.distractorB,
-            question.distractorC,
-            question.distractorD,
-            question.distractorE
-        ].filter { !$0.isEmpty }
-    }
-    
-    var letters: [String] {
-        //array of a, b, c, etc
-        Array(0..<distractors.count).map {
-            String(UnicodeScalar(65 + $0)!)
-        }
-    }
-    
+
     @State private var showAIView = false
     @State private var showPaywall = false
-        
+
     var body: some View {
-        Form{
+        Form {
             Section {
                 TipView(aiTip)
             }
-            Section(header: Text("Question")) {
+
+            Section("Question") {
                 Text(question.questionText)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    .background(Theme.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .stroke(Theme.divider.opacity(0.7), lineWidth: 1)
+                    )
+                    .listRowBackground(Color.clear)
             }
 
-            Section(header: Text("Correct Answer: \(question.correctAnswer.uppercased())")) {
+            Section("Correct Answer: \(question.correctAnswer.uppercased())") {
                 Text(displayCorrectAnswer())
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    .background(Theme.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .stroke(Theme.divider.opacity(0.7), lineWidth: 1)
+                    )
+                    .listRowBackground(Color.clear)
             }
 
-            Section(header: Text("Critique")) {
+            Section("Critique") {
                 Text(question.critique)
                     .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    .background(Theme.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .stroke(Theme.divider.opacity(0.7), lineWidth: 1)
+                    )
+                    .listRowBackground(Color.clear)
             }
         }
+        // Theme (Form-friendly)
+        .scrollContentBackground(.hidden)
+        .background(Theme.bg.ignoresSafeArea())
+        .tint(Theme.accent)
         .navigationTitle("Critique")
         .navigationBarTitleDisplayMode(.inline)
-        .padding()
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -65,9 +79,7 @@ struct CritiqueView: View {
                         showPaywall = true
                     }
                 } label: {
-                    VStack {
-                        Image(systemName: "apple.intelligence")
-                    }
+                    Image(systemName: "apple.intelligence")
                 }
             }
         }
@@ -88,29 +100,18 @@ struct CritiqueView: View {
         .sheet(isPresented: $showAIView) {
             AIView(question: question)
         }
-        
     }
-    
+
     func displayCorrectAnswer() -> String {
         let correctAnswer = question.correctAnswer.lowercased()
-        
+
         switch correctAnswer {
-        case "a":
-            return question.distractorA
-        case "b":
-            return question.distractorB
-        case "c":
-            return question.distractorC
-        case "d":
-            return question.distractorD
-        case "e":
-            return question.distractorE
-        default:
-            return ""
+        case "a": return question.distractorA
+        case "b": return question.distractorB
+        case "c": return question.distractorC
+        case "d": return question.distractorD
+        case "e": return question.distractorE
+        default:  return ""
         }
     }
 }
-
-//#Preview {
-//    CritiqueView()
-//}

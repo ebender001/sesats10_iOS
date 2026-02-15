@@ -7,8 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import Firebase
-import FirebaseAppCheck
 import TipKit
 
 @main
@@ -20,9 +18,6 @@ struct SESATS10App: App {
             .displayFrequency(.immediate),
             .datastoreLocation(.applicationDefault)
         ])
-        let providerFactory = Sesats10AppCheckProviderFactory()
-        AppCheck.setAppCheckProviderFactory(providerFactory)
-        FirebaseApp.configure()
         
     }
     

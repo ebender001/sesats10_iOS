@@ -10,18 +10,31 @@ import SwiftUI
 struct TopicRowView: View {
     let topic: Topic
     
-    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
-        HStack {
-            Image(topic.imageString)
-                .resizable()
-                .frame(width: 40, height: 40)
-                .padding(.horizontal)
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Theme.accentMuted.opacity(0.12))
+
+                Image(topic.imageString)
+                    .resizable()
+                    .scaledToFit()
+                    .padding(8)
+                    .foregroundStyle(Theme.accentMuted)
+            }
+            .frame(width: 44, height: 44)
+
             Text(topic.title)
                 .font(.headline)
-                .fontWeight(.bold)
+                .foregroundStyle(.primary)
+                .lineLimit(2)
+
+            Spacer(minLength: 0)
+
         }
+        .cardStyle()
+        .contentShape(Rectangle())
     }
 }
 

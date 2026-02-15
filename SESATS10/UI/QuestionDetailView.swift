@@ -16,6 +16,8 @@ struct QuestionDetailView: View {
     @State private var showCritique = false
     @State private var showAnswerStatus = false
     
+    private let correctAnswerScrollID = "correctAnswerCard"
+    
     @Environment(\.modelContext) var modelContext
     @Environment(\.dismiss) var dismiss
     
@@ -37,43 +39,117 @@ struct QuestionDetailView: View {
     }
     
     var body: some View {
-        questionDetail
-            .navigationDestination(isPresented: $showMediaList) {
-                MediaListView(question: question)
-            }
+        ZStack {
+            Theme.bg
+                .ignoresSafeArea()
+
+            questionDetail
+        }
+        .navigationDestination(isPresented: $showMediaList) {
+            MediaListView(question: question)
+        }
     }
     
     var questionDetail: some View {
-        VStack(spacing: 0) {
+        ScrollViewReader { proxy in
             ScrollView {
+            LazyVStack(alignment: .leading, spacing: 14) {
+                // Question stem
                 Text(question.questionText)
-                    .padding(.bottom, 8)
+                    .font(.headline)
+                    .foregroundStyle(.primary)
                     .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .frame(maxHeight: 250)
-            
-            List {
-                Section(header: Text("Select best answer")) {
+                    .cardStyle()
+
+                // Answer choices
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Select best answer")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Theme.textSecondary)
+
                     ForEach(Array(distractors.enumerated()), id: \.offset) { index, distractor in
-                        
-                        Text("\(letters[index].uppercased()).  \(distractor)")
-                            .fontWeight(.bold)
-                            .onTapGesture {
-                                //select answer here
-                                let letters = distractors.letterIndices()
-                                let index = distractors.firstIndex(of: distractor)!
-                                selectedDistractor = letters[index]
-                                showConfirmation.toggle()
-                                
+                        Button {
+                            guard question.selectedAnswer.isEmpty else { return }
+                            let letters = distractors.letterIndices()
+                            let idx = distractors.firstIndex(of: distractor) ?? index
+                            selectedDistractor = letters[idx]
+                            showConfirmation.toggle()
+                        } label: {
+                            HStack(alignment: .top, spacing: 10) {
+                                Text("\(letters[index]).")
+                                    .font(.headline)
+                                    .foregroundStyle(.primary)
+
+                                Text(distractor)
+                                    .font(.headline)
+                                    .foregroundStyle(.primary)
+                                    .multilineTextAlignment(.leading)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
                             }
+                            .padding(.vertical, 10)
+                            .padding(.horizontal, 12)
+                            .background(Theme.surface)
+                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .stroke(Theme.divider.opacity(0.7), lineWidth: 1)
+                            )
+                            .opacity(question.selectedAnswer.isEmpty ? 1 : 0.6)
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(!question.selectedAnswer.isEmpty)
+                    }
+                }
+                .cardStyle()
+                
+                // Correct Answer Section (shown after answering)
+                if !question.selectedAnswer.isEmpty {
+                    HStack(spacing: 0) {
+                        // Accent bar
+                        Rectangle()
+                            .fill(question.answeredCorrectly ? Theme.success : Theme.error)
+                            .frame(width: 6)
+
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Correct Answer")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(Theme.textSecondary)
+
+                            Text(question.correctAnswer.uppercased() + ". " +
+                                 distractors[letters.firstIndex(of: question.correctAnswer.uppercased()) ?? 0])
+                                .font(.headline)
+                                .foregroundStyle(.primary)
+                                .multilineTextAlignment(.leading)
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .background(Theme.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .stroke(Theme.divider.opacity(0.6), lineWidth: 1)
+                    )
+                    .id(correctAnswerScrollID)
+                }
+            }
+            .padding(.horizontal)
+            .padding(.top, 8)
+            .padding(.bottom, 20)
+            }
+            .onChange(of: question.selectedAnswer) { _, newValue in
+                guard !newValue.isEmpty else { return }
+                // Ensure layout has updated before scrolling.
+                DispatchQueue.main.async {
+                    withAnimation(.easeInOut) {
+                        proxy.scrollTo(correctAnswerScrollID, anchor: .top)
                     }
                 }
             }
-            .disabled(!question.selectedAnswer.isEmpty)
-            .opacity(question.selectedAnswer.isEmpty ? 1 : 0.6)
         }
-        .padding()
         .navigationTitle(question.section)
+        .navigationBarTitleDisplayMode(.inline)
+        .tint(Theme.accent)
         .toolbar {
             if !question.questionMovieAssets.isEmpty || !question.questionImageAssets.isEmpty {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -81,7 +157,6 @@ struct QuestionDetailView: View {
                         showMediaList.toggle()
                     }
                 }
-                
             }
         }
         .alert("\(question.answeredCorrectly ? "Correct" : "Incorrect") Answer",
@@ -111,8 +186,6 @@ struct QuestionDetailView: View {
         .navigationDestination(isPresented: $showCritique) {
             CritiqueView(question: question)
         }
-        
-
     }
     
     func updateQuestion() {

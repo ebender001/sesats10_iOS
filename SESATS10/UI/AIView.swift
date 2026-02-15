@@ -13,10 +13,11 @@ struct AIView: View {
     @Environment(\.modelContext) var modelContext
     
     let question: Question
-    @StateObject private var viewModel = AIViewModel()
+    @State private var responseText = ""
     @State private var showAlert = false
     @State private var alertMessage = ""
     @State private var aiTask: Task<Void, Never>?
+    @State private var isLoading = false
     
     var correctAnswer: String {
         switch question.correctAnswer.lowercased() {
@@ -75,19 +76,27 @@ struct AIView: View {
                         
                     }
                     Section(header: Text("A.I. Response")) {
-                        if viewModel.responseText.isEmpty {
+                        if isLoading {
                             HStack {
                                 Text("Generating AI analysis… This educational content may not fully reflect current guidelines and should be independently verified.")
                                     .foregroundStyle(.secondary)
                                 Spacer()
                                 ProgressView()
                             }
-                            .padding()
-                            
+                            .padding(.vertical, 6)
+                            .transition(.opacity)
+                        }
+
+                        if responseText.isEmpty {
+                            if !isLoading {
+                                Text("No AI response yet.")
+                                    .foregroundStyle(.secondary)
+                            }
                         } else {
-                            Text(viewModel.responseText)
+                            Text(responseText)
                         }
                     }
+                    .animation(.easeInOut(duration: 0.3), value: isLoading)
                 }
                 .alert("AI Update",
                        isPresented: $showAlert,
@@ -120,7 +129,7 @@ struct AIView: View {
     }
     
     private func saveAIUpdate(showConfirmation: Bool = false) {
-        guard !question.id.isEmpty, !viewModel.responseText.isEmpty else { return }
+        guard !question.id.isEmpty, !responseText.isEmpty else { return }
 
         do {
             // Use optional to be compatible whether AIUpdate.id is String or String?
@@ -130,10 +139,10 @@ struct AIView: View {
             let allUpdates = try modelContext.fetch(FetchDescriptor<AIUpdate>())
 
             if let existing = allUpdates.first(where: { $0.id == qid }) {
-                existing.text = viewModel.responseText
+                existing.text = responseText
                 existing.date = .now
             } else {
-                let aiUpdate = AIUpdate(id: question.id, text: viewModel.responseText, date: .now)
+                let aiUpdate = AIUpdate(id: question.id, text: responseText, date: .now)
                 modelContext.insert(aiUpdate)
             }
 
@@ -158,9 +167,16 @@ struct AIView: View {
             !apiKey.isEmpty
         else {
             await MainActor.run {
-                viewModel.responseText = "Missing OPENAI_API_KEY in Secrets.plist"
+                responseText = "Missing OPENAI_API_KEY in Secrets.plist"
             }
             return
+        }
+
+        await MainActor.run {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                isLoading = true
+            }
+            responseText = ""
         }
         
         let prompt = """
@@ -204,15 +220,27 @@ struct AIView: View {
         """
 
         do {
-            let text = try await callOpenAI(prompt: prompt, apiKey: apiKey)
+            let finalText = try await callOpenAIStreaming(prompt: prompt, apiKey: apiKey) { delta in
+                Task { @MainActor in
+                    responseText += delta
+                }
+            }
+
             await MainActor.run {
-                viewModel.responseText = text
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    isLoading = false
+                }
+                // Ensure the final text is set (in case some deltas were missed)
+                responseText = finalText
                 // Auto-save when the response is ready
                 saveAIUpdate(showConfirmation: false)
             }
         } catch {
             await MainActor.run {
-                viewModel.responseText = "OpenAI request failed: \(error.localizedDescription)"
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    isLoading = false
+                }
+                responseText = "OpenAI request failed: \(error.localizedDescription)"
             }
         }
     }
@@ -283,5 +311,98 @@ struct AIView: View {
 
         // Last resort: return raw JSON for debugging
         return String(data: data, encoding: .utf8) ?? ""
+    }
+
+    private func callOpenAIStreaming(
+        prompt: String,
+        apiKey: String,
+        onDelta: @escaping (String) -> Void
+    ) async throws -> String {
+        let url = URL(string: "https://api.openai.com/v1/responses")!
+
+        let body: [String: Any] = [
+            "model": "gpt-4.1-mini",
+            "max_output_tokens": 1200,
+            "stream": true,
+            "input": [
+                [
+                    "role": "user",
+                    "content": [
+                        [
+                            "type": "input_text",
+                            "text": prompt
+                        ]
+                    ]
+                ]
+            ]
+        ]
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let (bytes, response) = try await URLSession.shared.bytes(for: request)
+
+        guard let http = response as? HTTPURLResponse else {
+            throw URLError(.badServerResponse)
+        }
+
+        guard (200...299).contains(http.statusCode) else {
+            // Try to read any body content that may already be in the stream
+            var raw = "HTTP \(http.statusCode)"
+            for try await line in bytes.lines {
+                raw += "\n" + line
+                // Stop early if we captured enough
+                if raw.count > 8000 { break }
+            }
+            throw NSError(domain: "OpenAI", code: http.statusCode, userInfo: [NSLocalizedDescriptionKey: raw])
+        }
+
+        var finalText = ""
+
+        for try await line in bytes.lines {
+            try Task.checkCancellation()
+
+            // SSE lines look like: "data: {...}". There may also be empty lines.
+            guard line.hasPrefix("data: ") else { continue }
+            let payload = String(line.dropFirst("data: ".count))
+
+            if payload == "[DONE]" {
+                break
+            }
+
+            guard let jsonData = payload.data(using: .utf8) else { continue }
+            guard let obj = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else { continue }
+
+            let type = obj["type"] as? String
+
+            // Text delta events
+            if type == "response.output_text.delta",
+               let delta = obj["delta"] as? String,
+               !delta.isEmpty {
+                finalText += delta
+                onDelta(delta)
+                continue
+            }
+
+            // Some servers send complete output chunks instead of deltas
+            if type == "response.output_text",
+               let text = obj["text"] as? String,
+               !text.isEmpty {
+                finalText += text
+                onDelta(text)
+                continue
+            }
+
+            // Stop on completion
+            if type == "response.completed" {
+                break
+            }
+        }
+
+        return finalText.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

@@ -19,20 +19,45 @@ struct QuestionListView: View {
     }
     
     var body: some View {
-        List {
-            ForEach(topicQuestions.indices, id: \.self) { index in
-                NavigationLink {
-                    QuestionDetailView(question: topicQuestions[index])
-                } label: {
-                    Text("\(index + 1). \(topicQuestions[index].questionText)")
-                        .multilineTextAlignment(.leading)
-                        .lineLimit(4)
+        ZStack {
+            Theme.bg
+                .ignoresSafeArea()
+
+            ScrollView {
+                LazyVStack(spacing: 14) {
+                    ForEach(topicQuestions.indices, id: \.self) { index in
+                        let question = topicQuestions[index]
+
+                        NavigationLink {
+                            QuestionDetailView(question: question)
+                        } label: {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("\(index + 1).")
+                                    .font(.caption)
+                                    .foregroundStyle(Theme.textSecondary)
+
+                                Text(question.questionText)
+                                    .font(.headline)
+                                    .foregroundStyle(.primary)
+                                    .multilineTextAlignment(.leading)
+                                    .lineLimit(4)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .cardStyle()
+                            .opacity(question.selectedAnswer.isEmpty ? 1.0 : 0.6)
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(!question.selectedAnswer.isEmpty)
+                    }
                 }
-                .disabled(!topicQuestions[index].selectedAnswer.isEmpty)
+                .padding(.horizontal)
+                .padding(.top, 8)
+                .padding(.bottom, 20)
             }
         }
         .navigationTitle(topic)
         .navigationBarTitleDisplayMode(.inline)
+        .tint(Theme.accent)
     }
 }
 
