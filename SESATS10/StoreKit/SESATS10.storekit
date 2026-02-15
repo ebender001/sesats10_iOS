@@ -14,21 +14,7 @@
 
   ],
   "products" : [
-    {
-      "displayPrice" : "24.99",
-      "familyShareable" : false,
-      "internalID" : "6757131149",
-      "localizations" : [
-        {
-          "description" : "Permanently unlock access to the AI features.",
-          "displayName" : "AI Features - One-Time Unlock",
-          "locale" : "en_US"
-        }
-      ],
-      "productID" : "com.cvoffice.sesats10.lifetime",
-      "referenceName" : "Lifetime subscription",
-      "type" : "NonConsumable"
-    }
+
   ],
   "settings" : {
     "_applicationInternalID" : "1528818078",
@@ -38,7 +24,7 @@
     "_developerTeamID" : "F294KH4KNP",
     "_disableDialogs" : false,
     "_failTransactionsEnabled" : false,
-    "_lastSynchronizedDate" : 791220299.22107303,
+    "_lastSynchronizedDate" : 792875061.95642602,
     "_locale" : "en_US",
     "_renewalBillingIssuesEnabled" : false,
     "_storefront" : "USA",

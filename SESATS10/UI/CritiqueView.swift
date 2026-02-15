@@ -81,8 +81,7 @@ struct CritiqueView: View {
         }) {
             PaywallView(productIDs: [
                 "com.cvoffice.sesats10.month",
-                "com.cvoffice.sesats10.annual",
-                "com.cvoffice.sesats10.lifetime"
+                "com.cvoffice.sesats10.annual"
             ])
             .environmentObject(entitlements)
         }
