@@ -14,7 +14,7 @@ struct AITip: Tip {
     }
     
     var message: Text? {
-        Text("Tap the \(Image(systemName: "apple.intelligence")) button for AI updates. Three options are available: Monthly, Annually, and Lifetime.")
+        Text("Tap the \(Image(systemName: "apple.intelligence")) button for AI updates. Two options are available: Monthly and Annually.")
     }
     
     var image: Image? {

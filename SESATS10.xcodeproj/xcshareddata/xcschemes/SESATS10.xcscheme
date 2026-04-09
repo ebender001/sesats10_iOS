@@ -50,9 +50,6 @@
             ReferencedContainer = "container:SESATS10.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
-      <StoreKitConfigurationFileReference
-         identifier = "../../SESATS10/StoreKit/SESATS10.storekit">
-      </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

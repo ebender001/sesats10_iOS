@@ -14,7 +14,7 @@ struct SubscriptionTip: Tip {
     }
     
     var message: Text? {
-        Text("Tap the \(Image(systemName: "apple.intelligence")) button to take advantage of artificial intelligence by subscribing. There are three great options!")
+        Text("Tap the \(Image(systemName: "apple.intelligence")) button to take advantage of artificial intelligence by subscribing. There are two great options!")
     }
     
     var image: Image? {

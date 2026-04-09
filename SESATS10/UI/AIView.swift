@@ -110,7 +110,7 @@ struct AIView: View {
             }
             .onAppear {
                 aiTask?.cancel()
-                aiTask = Task { await generateAI() }
+                aiTask = Task { await loadOrGenerateAI() }
             }
             .onDisappear {
                 aiTask?.cancel()
@@ -132,13 +132,7 @@ struct AIView: View {
         guard !question.id.isEmpty, !responseText.isEmpty else { return }
 
         do {
-            // Use optional to be compatible whether AIUpdate.id is String or String?
-            let qid: String? = question.id
-
-            // Fetch without a predicate to avoid SwiftData predicate macro errors
-            let allUpdates = try modelContext.fetch(FetchDescriptor<AIUpdate>())
-
-            if let existing = allUpdates.first(where: { $0.id == qid }) {
+            if let existing = fetchCachedAIUpdate() {
                 existing.text = responseText
                 existing.date = .now
             } else {
@@ -156,6 +150,31 @@ struct AIView: View {
             print("Could not save \(question.id): \(error)")
             alertMessage = "Failed to save AI Update: \(error.localizedDescription)"
             showAlert = true
+        }
+    }
+
+    @MainActor
+    private func loadOrGenerateAI() async {
+        if let cachedUpdate = fetchCachedAIUpdate(),
+           !cachedUpdate.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            responseText = cachedUpdate.text
+            isLoading = false
+            return
+        }
+
+        await generateAI()
+    }
+
+    @MainActor
+    private func fetchCachedAIUpdate() -> AIUpdate? {
+        guard !question.id.isEmpty else { return nil }
+
+        do {
+            let allUpdates = try modelContext.fetch(FetchDescriptor<AIUpdate>())
+            return allUpdates.first(where: { $0.id == question.id })
+        } catch {
+            print("Could not fetch cached AI update for \(question.id): \(error)")
+            return nil
         }
     }
     
