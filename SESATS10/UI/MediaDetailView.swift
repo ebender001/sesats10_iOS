@@ -78,7 +78,7 @@ struct MediaDetailView: View {
                 resolvedMedia = media
             }
         }
-        .onChange(of: media) { newValue in
+        .onChange(of: media) { _, newValue in
             // If the selection changes while presented, update the resolved value.
             if !newValue.isEmpty {
                 resolvedMedia = newValue

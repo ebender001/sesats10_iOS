@@ -6,22 +6,6 @@
 //
 
 /*
- AI prompt
- 
- import FirebaseAILogic
- 
- .task {
- let ai = FirebaseAI.firebaseAI(backend: .googleAI())
- let model = ai.generativeModel(modelName: "gemini-2.5-flash")
- 
- let prompt = "Write a story about a magic backpack."
- let response = try! await model.generateContent(prompt)
- print(response.text ?? "No text in response.")
- }
- */
-
-
-/*
  Response for breast cancer
  
  Given the information:
