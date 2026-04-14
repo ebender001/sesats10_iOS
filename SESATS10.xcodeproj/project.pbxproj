@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		CE4E060C2F04008E003F0733 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE4E060B2F04008E003F0733 /* StoreKit.framework */; };
+		CEE2F64B2F8E7CA00088DFF0 /* ParseSwift in Frameworks */ = {isa = PBXBuildFile; productRef = CEE2F64A2F8E7CA00088DFF0 /* ParseSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -41,6 +42,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEE2F64B2F8E7CA00088DFF0 /* ParseSwift in Frameworks */,
 				CE4E060C2F04008E003F0733 /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -93,6 +95,7 @@
 			);
 			name = SESATS10;
 			packageProductDependencies = (
+				CEE2F64A2F8E7CA00088DFF0 /* ParseSwift */,
 			);
 			productName = SESATS10;
 			productReference = CED8F92E2EF31DD3009E2641 /* SESATS10.app */;
@@ -123,6 +126,7 @@
 			mainGroup = CED8F9252EF31DD3009E2641;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				CEE2F6492F8E7CA00088DFF0 /* XCRemoteSwiftPackageReference "Parse-Swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CED8F92F2EF31DD3009E2641 /* Products */;
@@ -297,7 +301,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.1.1;
+				MARKETING_VERSION = 2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cvoffice.sesats10;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -335,7 +339,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.1.1;
+				MARKETING_VERSION = 2.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.cvoffice.sesats10;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -374,6 +378,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		CEE2F6492F8E7CA00088DFF0 /* XCRemoteSwiftPackageReference "Parse-Swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/parse-community/Parse-Swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.14.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		CEE2F64A2F8E7CA00088DFF0 /* ParseSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CEE2F6492F8E7CA00088DFF0 /* XCRemoteSwiftPackageReference "Parse-Swift" */;
+			productName = ParseSwift;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = CED8F9262EF31DD3009E2641 /* Project object */;
 }

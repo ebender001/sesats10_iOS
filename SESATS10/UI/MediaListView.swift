@@ -15,16 +15,42 @@ struct MediaListView: View {
     var body: some View {
         List {
             ForEach(Array(question.questionImageAssets.enumerated()), id: \.offset) { index, asset in
-                Text("Image \(index + 1)")
-                    .onTapGesture {
-                        selection = MediaSelection(name: asset, type: .image)
+                Button {
+                    selection = MediaSelection(name: asset, type: .image)
+                } label: {
+                    HStack {
+                        Text("Image \(index + 1)")
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+
+                        Spacer()
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .cardStyle()
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+                .buttonStyle(.plain)
+                .listRowBackground(Color.clear)
             }
             ForEach(Array(question.questionMovieAssets.enumerated()), id: \.offset) { index, asset in
-                Text("Video \(index + 1)")
-                    .onTapGesture {
-                        selection = MediaSelection(name: asset, type: .video)
+                Button {
+                    selection = MediaSelection(name: asset, type: .video)
+                } label: {
+                    HStack {
+                        Text("Video \(index + 1)")
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+
+                        Spacer()
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .cardStyle()
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+                .buttonStyle(.plain)
+                .listRowBackground(Color.clear)
             }
         }
         .sheet(item: $selection) { sel in
@@ -32,8 +58,9 @@ struct MediaListView: View {
             MediaDetailView(media: .constant(sel.name), mediaType: sel.type)
         }
         .navigationTitle("Media")
-        
-        
+        .listRowSeparator(.hidden)
+        .scrollContentBackground(.hidden)
+        .background(Theme.bg.ignoresSafeArea())
     }
 }
 

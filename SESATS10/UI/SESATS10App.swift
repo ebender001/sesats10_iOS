@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 import TipKit
+import ParseSwift
 
 @main
 struct SESATS10App: App {
@@ -18,7 +19,8 @@ struct SESATS10App: App {
             .displayFrequency(.immediate),
             .datastoreLocation(.applicationDefault)
         ])
-        
+
+        configureParse()
     }
     
     var body: some Scene {
@@ -28,5 +30,27 @@ struct SESATS10App: App {
                 .task { entitlements.start() }
         }
         .modelContainer(for: [Question.self, AIUpdate.self])
+    }
+}
+
+private extension SESATS10App {
+    func configureParse() {
+        guard
+            let secretsURL = Bundle.main.url(forResource: "Secrets", withExtension: "plist"),
+            let secrets = NSDictionary(contentsOf: secretsURL) as? [String: String],
+            let applicationId = secrets["PARSE_APP_ID"],
+            let clientKey = secrets["PARSE_CLIENT_KEY"],
+            let serverURLString = secrets["PARSE_SERVER_URL"],
+            let serverURL = URL(string: serverURLString)
+        else {
+            assertionFailure("Missing Parse configuration in Secrets.plist.")
+            return
+        }
+
+        ParseSwift.initialize(
+            applicationId: applicationId,
+            clientKey: clientKey,
+            serverURL: serverURL
+        )
     }
 }

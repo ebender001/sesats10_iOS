@@ -9,8 +9,8 @@ import SwiftUI
 
 struct TopicRowView: View {
     let topic: Topic
-    
-    
+    let progress: Double
+
     var body: some View {
         HStack(spacing: 12) {
             ZStack {
@@ -32,12 +32,49 @@ struct TopicRowView: View {
 
             Spacer(minLength: 0)
 
+            TopicProgressGauge(progress: progress)
         }
         .cardStyle()
         .contentShape(Rectangle())
     }
 }
 
+private struct TopicProgressGauge: View {
+    let progress: Double
+
+    private let startTrim = 0.18
+    private let endTrim = 0.82
+
+    var body: some View {
+        let clampedProgress = min(max(progress, 0), 1)
+        let trimRange = endTrim - startTrim
+
+        ZStack {
+            ZStack {
+                Circle()
+                    .trim(from: startTrim, to: endTrim)
+                    .stroke(
+                        Theme.accent.opacity(0.2),
+                        style: StrokeStyle(lineWidth: 4, lineCap: .round)
+                    )
+
+                Circle()
+                    .trim(from: startTrim, to: startTrim + (trimRange * clampedProgress))
+                    .stroke(
+                        Theme.accent,
+                        style: StrokeStyle(lineWidth: 4, lineCap: .round)
+                    )
+            }
+            .rotationEffect(.degrees(90))
+
+            Text(clampedProgress.formatted(.percent.precision(.fractionLength(0))))
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(Theme.textSecondary)
+        }
+        .frame(width: 31, height: 31)
+    }
+}
+
 #Preview {
-    TopicRowView(topic: Topic(title: "General Thoracic - Lung & Chest Wall", imageString: "lungs"))
+    TopicRowView(topic: Topic(title: "General Thoracic - Lung & Chest Wall", imageString: "lungs"), progress: 0.64)
 }

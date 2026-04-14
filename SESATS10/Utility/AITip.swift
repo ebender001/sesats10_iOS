@@ -10,11 +10,11 @@ import TipKit
 
 struct AITip: Tip {
     var title: Text {
-        Text("Using artificial intelligence")
+        Text("AI Update")
     }
     
     var message: Text? {
-        Text("Tap the \(Image(systemName: "apple.intelligence")) button for AI updates. Two options are available: Monthly and Annually.")
+        Text("An AI Update subscription is required for more up-to-date information about the correct answer and critique.")
     }
     
     var image: Image? {

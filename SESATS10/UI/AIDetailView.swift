@@ -23,11 +23,25 @@ struct AIDetailView: View {
             }
             Section {
                 DisclosureGroup("AI Update", isExpanded: $isAIUpdateExpanded) {
-                    Text(aiUpdate.text)
+                    markdownText(aiUpdate.text)
                 }
             }
         }
-        .navigationTitle("AI Detail")
+        .navigationTitle("AI Update")
+    }
+
+    @ViewBuilder
+    private func markdownText(_ text: String) -> some View {
+        if let attributed = try? AttributedString(
+            markdown: text,
+            options: AttributedString.MarkdownParsingOptions(
+                interpretedSyntax: .inlineOnlyPreservingWhitespace
+            )
+        ) {
+            Text(attributed)
+        } else {
+            Text(text)
+        }
     }
 }
 

@@ -7,11 +7,9 @@
 
 import SwiftUI
 import SwiftData
-import TipKit
 
 struct ReviewQuestionDetailView: View {
     let question: Question
-    private let reviewTip = ReviewTip()
     @Query var aiUpdates: [AIUpdate]
     @State private var showMediaList = false
     @State private var showCritique = false
@@ -37,6 +35,14 @@ struct ReviewQuestionDetailView: View {
     func aiUpdate(for question: Question) -> AIUpdate? {
         aiUpdates.filter( { question.id == $0.id }).first
     }
+
+    var hasMedia: Bool {
+        !question.questionMovieAssets.isEmpty || !question.questionImageAssets.isEmpty
+    }
+
+    var showsCritiqueToolbarAction: Bool {
+        !question.critique.isEmpty && aiUpdate(for: question) == nil
+    }
     
     var body: some View {
         ZStack {
@@ -60,11 +66,26 @@ struct ReviewQuestionDetailView: View {
     var questionDetail: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 14) {
-
-                // Tip shown when an AI update exists
                 if aiUpdate(for: question) != nil {
-                    TipView(reviewTip)
+                    Button {
+                        showAiUpdate.toggle()
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: "sparkles")
+                                .foregroundStyle(Theme.accent)
+
+                            Text("AI Update")
+                                .font(.headline)
+                                .foregroundStyle(.primary)
+
+                            Spacer()
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                         .cardStyle()
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
+                    .buttonStyle(.plain)
                 }
 
                 // Question stem
@@ -166,22 +187,16 @@ struct ReviewQuestionDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .tint(Theme.accent)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                HStack(spacing: 14) {
-                    if !question.questionMovieAssets.isEmpty || !question.questionImageAssets.isEmpty {
-                        Button("Media") {
-                            showMediaList.toggle()
-                        }
-                    }
-
-                    if !question.critique.isEmpty {
-                        if aiUpdate(for: question) != nil {
-                            Button {
-                                showAiUpdate.toggle()
-                            } label: {
-                                Image(systemName: "apple.intelligence")
+            if hasMedia || showsCritiqueToolbarAction {
+                ToolbarItem(placement: .topBarTrailing) {
+                    HStack(spacing: 14) {
+                        if hasMedia {
+                            Button("Media") {
+                                showMediaList.toggle()
                             }
-                        } else {
+                        }
+
+                        if showsCritiqueToolbarAction {
                             Button("Critique") {
                                 showCritique.toggle()
                             }

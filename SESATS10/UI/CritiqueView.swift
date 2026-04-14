@@ -21,7 +21,33 @@ struct CritiqueView: View {
     var body: some View {
         Form {
             Section {
-                TipView(aiTip)
+                Button {
+                    aiTip.invalidate(reason: .actionPerformed)
+
+                    if entitlements.hasAIAccess {
+                        showAIView = true
+                    } else {
+                        showPaywall = true
+                    }
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "sparkles")
+                            .foregroundStyle(Theme.accent)
+
+                        Text("AI Update")
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+
+                        Spacer()
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .cardStyle()
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+                .buttonStyle(.plain)
+                .listRowBackground(Color.clear)
+                .popoverTip(aiTip, arrowEdge: .top)
             }
 
             Section("Question") {
@@ -70,19 +96,6 @@ struct CritiqueView: View {
         .tint(Theme.accent)
         .navigationTitle("Critique")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    if entitlements.hasAIAccess {
-                        showAIView = true
-                    } else {
-                        showPaywall = true
-                    }
-                } label: {
-                    Image(systemName: "apple.intelligence")
-                }
-            }
-        }
         .sheet(isPresented: $showPaywall, onDismiss: {
             Task {
                 await entitlements.refresh()

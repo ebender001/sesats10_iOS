@@ -7,7 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import TipKit
 import StoreKit
 
 struct ContentView: View {
@@ -24,8 +23,6 @@ struct ContentView: View {
     @State private var showDisclaimer = false
     @State private var showPrivacyPolicy = false
     @State private var showResetConfirmation = false
-    @State private var showSubscriptionStore: Bool = false
-    @State private var showManageSubscriptions = false
 
     private enum Route: Hashable {
         case topic(String)
@@ -39,15 +36,6 @@ struct ContentView: View {
     }
     
     var topics = Topic.allTopics
-    
-    private let subscriptionTip = SubscriptionTip()
-    
-    init() {
-        try? Tips.configure([
-            .displayFrequency(.immediate),
-            .datastoreLocation(.applicationDefault)
-        ])
-    }
     
     var body: some View {
         NavigationStack(path: $path) {
@@ -74,29 +62,6 @@ struct ContentView: View {
                     seedDatabase()
                 }
             }
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        if entitlements.hasAIAccess {
-                            showManageSubscriptions = true
-                        } else {
-                            showSubscriptionStore = true
-                        }
-                    } label: {
-                        Image(systemName: "apple.intelligence")
-                    }
-                }
-            }
-            .sheet(isPresented: $showSubscriptionStore, onDismiss: {
-                Task { await entitlements.refresh() }
-            }) {
-                PaywallView(productIDs: [
-                    "com.cvoffice.sesats10.month",
-                    "com.cvoffice.sesats10.annual"
-                ])
-                .environmentObject(entitlements)
-            }
-            .manageSubscriptionsSheet(isPresented: $showManageSubscriptions)
             .navigationDestination(for: Route.self) { route in
                 switch route {
                 case .topic(let title):
@@ -110,13 +75,12 @@ struct ContentView: View {
     
     var topicList: some View {
         List {
-            TipView(subscriptionTip)
             Section {
                 ForEach(topics) { topic in
                     Button {
                         path.append(Route.topic(topic.title))
                     } label: {
-                        TopicRowView(topic: topic)
+                        TopicRowView(topic: topic, progress: topicCompletion(for: topic.title))
                     }
                     .buttonStyle(.plain)
                     .listRowSeparator(.hidden)
@@ -196,6 +160,14 @@ struct ContentView: View {
         questions
             .filter{ $0.section == topic}
             .sorted { $0.finalQuestionNumber < $1.finalQuestionNumber }
+    }
+
+    func topicCompletion(for topic: String) -> Double {
+        let topicQuestions = topicQuestions(topic: topic)
+        guard !topicQuestions.isEmpty else { return 0 }
+
+        let answeredCount = topicQuestions.filter { !$0.selectedAnswer.isEmpty }.count
+        return Double(answeredCount) / Double(topicQuestions.count)
     }
     
     func resetDatabase() {
