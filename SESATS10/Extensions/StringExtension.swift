@@ -6,7 +6,6 @@
 //
 
 import Foundation
-
 extension String {
     /// Returns a new string with all HTML tags removed.
     func removingHTMLTags() -> String {
@@ -40,7 +39,62 @@ extension String {
             options: .regularExpression
         )
 
-        return text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return text
+            .decodingHTMLEntities()
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    func decodingHTMLEntities() -> String {
+        let namedEntities: [String: String] = [
+            "&amp;": "&",
+            "&lt;": "<",
+            "&gt;": ">",
+            "&quot;": "\"",
+            "&apos;": "'",
+            "&#39;": "'",
+            "&nbsp;": " "
+        ]
+
+        var decoded = self
+        for (entity, replacement) in namedEntities {
+            decoded = decoded.replacingOccurrences(of: entity, with: replacement)
+        }
+
+        let pattern = "&#(x?[0-9A-Fa-f]+);"
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return decoded }
+
+        let matches = regex.matches(
+            in: decoded,
+            range: NSRange(decoded.startIndex..., in: decoded)
+        )
+
+        for match in matches.reversed() {
+            guard
+                let range = Range(match.range(at: 1), in: decoded)
+            else {
+                continue
+            }
+
+            let value = String(decoded[range])
+            let scalarValue: UInt32?
+
+            if value.lowercased().hasPrefix("x") {
+                scalarValue = UInt32(value.dropFirst(), radix: 16)
+            } else {
+                scalarValue = UInt32(value, radix: 10)
+            }
+
+            guard
+                let scalarValue,
+                let scalar = UnicodeScalar(scalarValue),
+                let replacementRange = Range(match.range, in: decoded)
+            else {
+                continue
+            }
+
+            decoded.replaceSubrange(replacementRange, with: String(scalar))
+        }
+
+        return decoded
     }
 }
-

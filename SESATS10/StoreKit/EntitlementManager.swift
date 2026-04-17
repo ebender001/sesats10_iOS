@@ -12,24 +12,32 @@ import Combine
 
 @MainActor
 final class EntitlementManager: ObservableObject {
-    @AppStorage("hasAIAccess") private var cachedHasAIAccess = false
-    
-    @Published private(set) var hasAIAccess = false
+    private let cachedAccessKey = "hasAIAccess"
+
+    @Published private(set) var hasAIAccess: Bool
     
     private let lifetimeID = "com.cvoffice.sesats10.lifetime"
     private let subscriptionIds: Set<String> = [
         "com.cvoffice.sesats10.month",
         "com.cvoffice.sesats10.annual"
     ]
+
+    private var hasStarted = false
+    private var updatesTask: Task<Void, Never>?
+
+    init() {
+        hasAIAccess = UserDefaults.standard.bool(forKey: cachedAccessKey)
+    }
     
     func start() {
-        hasAIAccess = cachedHasAIAccess
-        
+        guard !hasStarted else { return }
+        hasStarted = true
+
         Task {
             await refresh()
         }
-        
-        Task {
+
+        updatesTask = Task {
             await listenForUpdates()
         }
     }
@@ -48,7 +56,7 @@ final class EntitlementManager: ObservableObject {
 
         // Update once, after scanning entitlements (covers break + empty entitlements)
         hasAIAccess = unlocked
-        cachedHasAIAccess = unlocked
+        UserDefaults.standard.set(unlocked, forKey: cachedAccessKey)
     }
     
     private func listenForUpdates() async {
@@ -56,5 +64,9 @@ final class EntitlementManager: ObservableObject {
             guard case .verified(_) = result else { continue }
             await refresh()
         }
+    }
+
+    deinit {
+        updatesTask?.cancel()
     }
 }

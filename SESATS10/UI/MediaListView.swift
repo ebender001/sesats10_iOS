@@ -9,12 +9,23 @@ import SwiftUI
 
 struct MediaListView: View {
     
-    let question: Question
+    private let imageAssets: [String]
+    private let movieAssets: [String]
     @State private var selection: MediaSelection? = nil
+
+    init(question: Question) {
+        self.imageAssets = question.questionImageAssets
+        self.movieAssets = question.questionMovieAssets
+    }
+
+    init(detail: BundledQuestionDetail) {
+        self.imageAssets = detail.questionImageAssets
+        self.movieAssets = detail.questionMovieAssets
+    }
     
     var body: some View {
         List {
-            ForEach(Array(question.questionImageAssets.enumerated()), id: \.offset) { index, asset in
+            ForEach(Array(imageAssets.enumerated()), id: \.offset) { index, asset in
                 Button {
                     selection = MediaSelection(name: asset, type: .image)
                 } label: {
@@ -33,7 +44,7 @@ struct MediaListView: View {
                 .buttonStyle(.plain)
                 .listRowBackground(Color.clear)
             }
-            ForEach(Array(question.questionMovieAssets.enumerated()), id: \.offset) { index, asset in
+            ForEach(Array(movieAssets.enumerated()), id: \.offset) { index, asset in
                 Button {
                     selection = MediaSelection(name: asset, type: .video)
                 } label: {

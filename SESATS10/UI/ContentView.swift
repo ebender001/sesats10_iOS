@@ -13,32 +13,29 @@ struct ContentView: View {
     @Environment(\.modelContext) var modelContext
     @EnvironmentObject var entitlements: EntitlementManager
     
-    @Query var questions: [Question]
-    @Query var aiUpdates: [AIUpdate]
+    @Query(
+        filter: #Predicate<Question> { question in
+            question.selectedAnswer != ""
+        },
+        sort: [SortDescriptor(\Question.finalQuestionNumber)]
+    ) var answeredQuestions: [Question]
     
     @State private var showCustomerCenter = false
     @State private var errorMessage: String?
     @State private var loading: Bool = false
-    @State var scorecards = Scorecard.allScorecards
     @State private var showDisclaimer = false
     @State private var showPrivacyPolicy = false
     @State private var showResetConfirmation = false
-
-    private enum Route: Hashable {
-        case topic(String)
-        case scorecard(correct: Bool)
-    }
-
-    @State private var path = NavigationPath()
     
     var databaseIsClean: Bool {
-        questions.filter { !$0.selectedAnswer.isEmpty }.count == 0
+        answeredQuestions.isEmpty
     }
     
     var topics = Topic.allTopics
+    private let scorecards = Scorecard.allScorecards
     
     var body: some View {
-        NavigationStack(path: $path) {
+        NavigationStack {
             ZStack {
                 Theme.bg
                     .ignoresSafeArea()
@@ -56,20 +53,6 @@ struct ContentView: View {
                         footer
                     }
             }
-            .task {
-                if !dataSeeded {
-                    print("Not seeded")
-                    seedDatabase()
-                }
-            }
-            .navigationDestination(for: Route.self) { route in
-                switch route {
-                case .topic(let title):
-                    QuestionListView(topic: title)
-                case .scorecard(let correct):
-                    ReviewQuestionListView(questions: questions, correctlyAnswered: correct)
-                }
-            }
         }
     }
     
@@ -77,11 +60,12 @@ struct ContentView: View {
         List {
             Section {
                 ForEach(topics) { topic in
-                    Button {
-                        path.append(Route.topic(topic.title))
+                    NavigationLink {
+                        QuestionListView(topic: topic.title)
                     } label: {
                         TopicRowView(topic: topic, progress: topicCompletion(for: topic.title))
                     }
+                    .navigationLinkIndicatorVisibility(.hidden)
                     .buttonStyle(.plain)
                     .listRowSeparator(.hidden)
                     .listRowBackground(Color.clear)
@@ -94,11 +78,18 @@ struct ContentView: View {
             
             Section {
                 ForEach(scorecards) { scorecard in
-                    Button {
-                        path.append(Route.scorecard(correct: scorecard.title == "Correct"))
+                    NavigationLink {
+                        ReviewQuestionListView(
+                            questions: answeredQuestions,
+                            correctlyAnswered: scorecard.title == "Correct"
+                        )
                     } label: {
-                        ScorecardRowView(scorecard: scorecard)
+                        ScorecardRowView(
+                            scorecard: scorecard,
+                            count: scorecard.title == "Correct" ? correctAnswersCount : incorrectAnswersCount
+                        )
                     }
+                    .navigationLinkIndicatorVisibility(.hidden)
                     .buttonStyle(.plain)
                     .listRowSeparator(.hidden)
                     .listRowBackground(Color.clear)
@@ -155,79 +146,30 @@ struct ContentView: View {
         .background(Theme.bg)
         .overlay(Divider().opacity(0.4), alignment: .top)
     }
-    
-    func topicQuestions(topic: String) -> [Question] {
-        questions
-            .filter{ $0.section == topic}
-            .sorted { $0.finalQuestionNumber < $1.finalQuestionNumber }
+
+    private var correctAnswersCount: Int {
+        answeredQuestions.filter(\.answeredCorrectly).count
+    }
+
+    private var incorrectAnswersCount: Int {
+        answeredQuestions.filter(\.answeredIncorrectly).count
     }
 
     func topicCompletion(for topic: String) -> Double {
-        let topicQuestions = topicQuestions(topic: topic)
-        guard !topicQuestions.isEmpty else { return 0 }
+        let questionCount = BundledQuestionCatalog.questionCount(in: topic)
+        guard questionCount > 0 else { return 0 }
 
-        let answeredCount = topicQuestions.filter { !$0.selectedAnswer.isEmpty }.count
-        return Double(answeredCount) / Double(topicQuestions.count)
+        let answeredCount = answeredQuestions.filter { $0.section == topic }.count
+        return Double(answeredCount) / Double(questionCount)
     }
     
     func resetDatabase() {
-        for question in questions {
-            question.answeredCorrectly = false
-            question.answeredIncorrectly = false
-            question.selectedAnswer = ""
-        }
         do {
+            try deleteAll(of: Question.self, in: modelContext)
             try deleteAll(of: AIUpdate.self, in: modelContext)
             try modelContext.save()
         } catch {
             print("Failed to reset database: \(error.localizedDescription)")
-        }
-    }
-    
-    func seedDatabase() {
-        guard let path = Bundle.main.url(forResource: "questions", withExtension: "tsv") else {
-            fatalError("Could not find questions file")
-        }
-        
-        do {
-            let questionsString = try String(contentsOf: path, encoding: .utf8)
-                .replacingOccurrences(of: "\"", with: "")
-                .replacingOccurrences(of: "&#39;", with: "'")
-            let questionsArray = questionsString.components(separatedBy: "\n")
-            //remove header row
-            for x in 1..<questionsArray.count {
-                let oneQuestion = questionsArray[x]
-                let itemArray = oneQuestion.components(separatedBy: "\t")
-                fillInDatabase(oneQuestion: itemArray)
-            }
-                
-        } catch {
-            fatalError("Could not load database: \(error.localizedDescription)")
-        }
-    }
-    
-    func fillInDatabase(oneQuestion: [String]) {
-        var section = oneQuestion[10]
-        if section == "Adult Acquired (TIVV)" {
-            section = "Adult Acquired Cardiac"
-        }
-        if section == "Congenital" {
-            section = "Congenital Cardiac"
-        }
-        
-        let newQuestion = Question(abstract1Title: oneQuestion[19], abstract2Title: oneQuestion[20], abstract3Title: oneQuestion[21], abstract4Title: oneQuestion[22], answeredCorrectly: false, answeredIncorrectly: false, correctAnswer: oneQuestion[4], critique: oneQuestion[13], critiqueMedia: oneQuestion[14], distractorA: oneQuestion[5], distractorB: oneQuestion[6], distractorC: oneQuestion[7], distractorD: oneQuestion[8], distractorE: oneQuestion[9], examId: oneQuestion[1], finalQuestionNumber: Int(oneQuestion[3])!, id: oneQuestion[2], pubMedRefId1: oneQuestion[15], pubMedRefId2: oneQuestion[16], pubMedRefId3: oneQuestion[17], pubMedRefId4: oneQuestion[18], questionText: oneQuestion[12], section: section, selectedAnswer: "", stem: oneQuestion[11], title: oneQuestion[0])
-        
-        modelContext.insert(newQuestion)
-    }
-    
-    var dataSeeded: Bool {
-        let descriptor = FetchDescriptor<Question>()
-        do {
-            let count = try modelContext.fetchCount(descriptor)
-            return count > 0
-        } catch {
-            print("Failed to fetch count: \(error.localizedDescription)")
-            return false
         }
     }
 }

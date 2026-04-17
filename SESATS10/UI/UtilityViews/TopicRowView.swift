@@ -45,6 +45,17 @@ private struct TopicProgressGauge: View {
     private let startTrim = 0.18
     private let endTrim = 0.82
 
+    private var gaugeColor: Color {
+        switch progress {
+        case ..<0.33:
+            return Theme.error
+        case ..<0.66:
+            return Color.orange
+        default:
+            return Theme.success
+        }
+    }
+
     var body: some View {
         let clampedProgress = min(max(progress, 0), 1)
         let trimRange = endTrim - startTrim
@@ -54,14 +65,14 @@ private struct TopicProgressGauge: View {
                 Circle()
                     .trim(from: startTrim, to: endTrim)
                     .stroke(
-                        Theme.accent.opacity(0.2),
+                        gaugeColor.opacity(0.2),
                         style: StrokeStyle(lineWidth: 4, lineCap: .round)
                     )
 
                 Circle()
                     .trim(from: startTrim, to: startTrim + (trimRange * clampedProgress))
                     .stroke(
-                        Theme.accent,
+                        gaugeColor,
                         style: StrokeStyle(lineWidth: 4, lineCap: .round)
                     )
             }

@@ -20,7 +20,7 @@ struct SESATS10App: App {
             .datastoreLocation(.applicationDefault)
         ])
 
-        configureParse()
+        Self.configureParse()
     }
     
     var body: some Scene {
@@ -34,7 +34,7 @@ struct SESATS10App: App {
 }
 
 private extension SESATS10App {
-    func configureParse() {
+    static func configureParse() {
         guard
             let secretsURL = Bundle.main.url(forResource: "Secrets", withExtension: "plist"),
             let secrets = NSDictionary(contentsOf: secretsURL) as? [String: String],
@@ -43,7 +43,7 @@ private extension SESATS10App {
             let serverURLString = secrets["PARSE_SERVER_URL"],
             let serverURL = URL(string: serverURLString)
         else {
-            assertionFailure("Missing Parse configuration in Secrets.plist.")
+            print("Parse configuration unavailable. Skipping Parse initialization.")
             return
         }
 

@@ -9,13 +9,23 @@ import SwiftUI
 import SwiftData
 
 struct QuestionListView: View {
-    @Query var questions: [Question]
+    @Query private var answeredQuestions: [Question]
+    private let topicQuestions: [BundledQuestionSummary]
     var topic: String
-    
-    var topicQuestions: [Question] {
-        questions
-            .filter{ $0.section == topic}
-            .sorted { $0.finalQuestionNumber < $1.finalQuestionNumber }
+
+    init(topic: String) {
+        self.topic = topic
+        self.topicQuestions = BundledQuestionCatalog.questions(in: topic)
+        _answeredQuestions = Query(
+            filter: #Predicate<Question> { question in
+                question.section == topic && question.selectedAnswer != ""
+            },
+            sort: [SortDescriptor(\Question.finalQuestionNumber)]
+        )
+    }
+
+    private var answeredQuestionIDs: Set<String> {
+        Set(answeredQuestions.map(\.id))
     }
     
     var body: some View {
@@ -25,11 +35,9 @@ struct QuestionListView: View {
 
             ScrollView {
                 LazyVStack(spacing: 14) {
-                    ForEach(topicQuestions.indices, id: \.self) { index in
-                        let question = topicQuestions[index]
-
+                    ForEach(Array(topicQuestions.enumerated()), id: \.element.id) { index, question in
                         NavigationLink {
-                            QuestionDetailView(question: question)
+                            QuestionDetailLoaderView(questionID: question.id, sectionTitle: topic)
                         } label: {
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("\(index + 1).")
@@ -44,10 +52,10 @@ struct QuestionListView: View {
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .cardStyle()
-                            .opacity(question.selectedAnswer.isEmpty ? 1.0 : 0.6)
+                            .opacity(answeredQuestionIDs.contains(question.id) ? 0.6 : 1.0)
                         }
                         .buttonStyle(.plain)
-                        .disabled(!question.selectedAnswer.isEmpty)
+                        .disabled(answeredQuestionIDs.contains(question.id))
                     }
                 }
                 .padding(.horizontal)
@@ -58,6 +66,37 @@ struct QuestionListView: View {
         .navigationTitle(topic)
         .navigationBarTitleDisplayMode(.inline)
         .tint(Theme.accent)
+    }
+}
+
+private struct QuestionDetailLoaderView: View {
+    let questionID: String
+    let sectionTitle: String
+
+    init(questionID: String, sectionTitle: String) {
+        self.questionID = questionID
+        self.sectionTitle = sectionTitle
+    }
+
+    var body: some View {
+        Group {
+            if let detail = BundledQuestionCatalog.detail(for: questionID) {
+                QuestionDetailView(detail: detail)
+            } else {
+                ZStack {
+                    Theme.bg
+                        .ignoresSafeArea()
+
+                    ContentUnavailableView(
+                        "Question Unavailable",
+                        systemImage: "exclamationmark.triangle",
+                        description: Text("Unable to load this question from the bundled catalog.")
+                    )
+                }
+                .navigationTitle(sectionTitle)
+                .navigationBarTitleDisplayMode(.inline)
+            }
+        }
     }
 }
 

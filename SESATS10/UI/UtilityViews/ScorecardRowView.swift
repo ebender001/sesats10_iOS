@@ -6,23 +6,10 @@
 //
 
 import SwiftUI
-import SwiftData
 
 struct ScorecardRowView: View {
     let scorecard: Scorecard
-    @Query var questions: [Question]
-    
-    var correctAnswersCount: Int {
-        questions.filter { $0.answeredCorrectly }.count
-    }
-    
-    var incorrectAnswersCount: Int {
-        questions.filter { $0.answeredIncorrectly }.count
-    }
-    
-    private var count: Int {
-        scorecard.title == "Correct" ? correctAnswersCount : incorrectAnswersCount
-    }
+    let count: Int
 
     private var iconTint: Color {
         switch scorecard.title {
@@ -66,5 +53,5 @@ struct ScorecardRowView: View {
 }
 
 #Preview {
-    ScorecardRowView(scorecard: Scorecard.allScorecards[0])
+    ScorecardRowView(scorecard: Scorecard.allScorecards[0], count: 12)
 }

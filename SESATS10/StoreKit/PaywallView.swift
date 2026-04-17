@@ -22,6 +22,7 @@ struct PaywallView: View {
     @State private var isRestoring = false
     @State private var showPrivacyPolicy = false
     @State private var showTermsOfUse = false
+    @State private var showOfferCodeRedemption = false
 
     var body: some View {
         NavigationStack {
@@ -50,6 +51,7 @@ struct PaywallView: View {
 
                 // Apple-provided purchase UI
                 StoreView(ids: productIDs)
+                    .storeButton(.hidden, for: .cancellation)
                     .padding(.horizontal)
                     .onInAppPurchaseCompletion { _, purchaseResult in
                         isPendingPurchase = false
@@ -95,6 +97,29 @@ struct PaywallView: View {
                     }
 
                 Button {
+                    showOfferCodeRedemption = true
+                } label: {
+                    HStack {
+                        Image(systemName: "ticket")
+                            .font(.subheadline.weight(.semibold))
+                        Spacer()
+                        Text("Redeem Offer Code")
+                            .font(.subheadline.weight(.semibold))
+                        Spacer()
+                    }
+                    .foregroundStyle(Theme.accent)
+                    .padding(.vertical, 14)
+                    .padding(.horizontal, 16)
+                    .background(Theme.accentMuted.opacity(0.14))
+                    .clipShape(Capsule())
+                    .overlay(
+                        Capsule()
+                            .stroke(Theme.accent.opacity(0.22), lineWidth: 1)
+                    )
+                }
+                .padding(.horizontal)
+
+                Button {
                     Task {
                         isRestoring = true
                         defer { isRestoring = false }
@@ -121,16 +146,28 @@ struct PaywallView: View {
                     }
                 } label: {
                     HStack {
+                        if isRestoring {
+                            ProgressView()
+                                .tint(Theme.surface)
+                        } else {
+                            Image(systemName: "arrow.clockwise")
+                                .font(.subheadline.weight(.semibold))
+                        }
                         Spacer()
-                        if isRestoring { ProgressView() }
                         Text("Restore Purchases")
-                            .font(.subheadline)
+                            .font(.subheadline.weight(.semibold))
                         Spacer()
                     }
+                    .foregroundStyle(Theme.surface)
+                    .padding(.vertical, 14)
+                    .padding(.horizontal, 16)
+                    .background(Theme.accent)
+                    .clipShape(Capsule())
+                    .shadow(color: Theme.accent.opacity(0.18), radius: 8, y: 3)
                 }
-                .buttonStyle(.bordered)
                 .padding(.horizontal)
                 .disabled(isRestoring)
+                .opacity(isRestoring ? 0.8 : 1)
 
                 if isPendingPurchase {
                     HStack {
@@ -155,7 +192,7 @@ struct PaywallView: View {
                    message: {
                 Text(alertMessage)
             })
-            .navigationTitle("Paywall")
+            .navigationTitle("SESATS 10 AI")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -175,6 +212,21 @@ struct PaywallView: View {
         }
         .sheet(isPresented: $showTermsOfUse) {
             TermsView()
+        }
+        .offerCodeRedemption(isPresented: $showOfferCodeRedemption) { result in
+            switch result {
+            case .success:
+                Task {
+                    await entitlements.refresh()
+                    if entitlements.hasAIAccess {
+                        dismiss()
+                    }
+                }
+            case .failure(let error):
+                alertTitle = "Offer Code Error"
+                alertMessage = error.localizedDescription
+                showAlert = true
+            }
         }
     }
     

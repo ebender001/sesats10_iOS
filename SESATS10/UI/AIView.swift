@@ -84,7 +84,7 @@ struct AIView: View {
                                     .foregroundStyle(.secondary)
                             }
                         } else {
-                            markdownText(responseText)
+                            markdownText(formattedResponseText(responseText))
                         }
                     }
                     .animation(.easeInOut(duration: 0.3), value: isLoading)
@@ -270,5 +270,26 @@ struct AIView: View {
         } else {
             Text(text)
         }
+    }
+
+    private func formattedResponseText(_ text: String) -> String {
+        text
+            .components(separatedBy: .newlines)
+            .map { line in
+                guard let colonIndex = line.firstIndex(of: ":") else { return line }
+
+                let key = String(line[..<colonIndex])
+                let valueStart = line.index(after: colonIndex)
+                let rawValue = String(line[valueStart...]).trimmingCharacters(in: .whitespaces)
+
+                guard key == "VERDICT_ANSWER" || key == "VERDICT_CRITIQUE" else {
+                    return line
+                }
+
+                let displayKey = key.replacingOccurrences(of: "_", with: " ")
+                let displayValue = rawValue.replacingOccurrences(of: "_", with: " ")
+                return "\(displayKey): **\(displayValue)**"
+            }
+            .joined(separator: "\n")
     }
 }
