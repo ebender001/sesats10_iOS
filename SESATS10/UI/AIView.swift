@@ -85,6 +85,7 @@ struct AIView: View {
                             }
                         } else {
                             markdownText(formattedResponseText(responseText))
+                            CardioThoraxiaPromoCard()
                         }
                     }
                     .animation(.easeInOut(duration: 0.3), value: isLoading)

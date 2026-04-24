@@ -17,6 +17,7 @@ struct CritiqueView: View {
 
     @State private var showAIView = false
     @State private var showPaywall = false
+    
 
     var body: some View {
         Form {
