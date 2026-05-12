@@ -12,12 +12,21 @@ struct CritiqueView: View {
 
     let question: Question
     let aiTip = AITip()
+    private let oralBoardsAppStoreURL = URL(string: "https://apps.apple.com/us/app/oral-boards-ai/id6763632588")!
 
     @EnvironmentObject var entitlements: EntitlementManager
+    @Environment(\.openURL) private var openURL
 
     @State private var showAIView = false
     @State private var showPaywall = false
-    
+    @State private var showOralBoardsPromo = false
+    @State private var hasAnimatedOralBoardsPromo = false
+
+    private var shouldShowOralBoardsPromo: Bool {
+        !question.selectedAnswer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || question.answeredCorrectly
+            || question.answeredIncorrectly
+    }
 
     var body: some View {
         Form {
@@ -77,6 +86,13 @@ struct CritiqueView: View {
                     .listRowBackground(Color.clear)
             }
 
+            if shouldShowOralBoardsPromo && showOralBoardsPromo {
+                OralBoardsPromoCard(action: openOralBoardsApp)
+                    .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                    .listRowBackground(Color.clear)
+                    .transition(.opacity.combined(with: .offset(y: 10)))
+            }
+
             Section("Critique") {
                 Text(question.critique)
                     .textSelection(.enabled)
@@ -97,6 +113,22 @@ struct CritiqueView: View {
         .tint(Theme.accent)
         .navigationTitle("Critique")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            guard shouldShowOralBoardsPromo else { return }
+
+            if hasAnimatedOralBoardsPromo {
+                showOralBoardsPromo = true
+                return
+            }
+
+            hasAnimatedOralBoardsPromo = true
+
+            DispatchQueue.main.async {
+                withAnimation(.easeOut(duration: 0.25)) {
+                    showOralBoardsPromo = true
+                }
+            }
+        }
         .sheet(isPresented: $showPaywall, onDismiss: {
             Task {
                 await entitlements.refresh()
@@ -127,5 +159,9 @@ struct CritiqueView: View {
         case "e": return question.distractorE
         default:  return ""
         }
+    }
+
+    private func openOralBoardsApp() {
+        openURL(oralBoardsAppStoreURL)
     }
 }
