@@ -12,6 +12,7 @@ import StoreKit
 struct ContentView: View {
     @Environment(\.modelContext) var modelContext
     @EnvironmentObject var entitlements: EntitlementManager
+    @AppStorage("hasShownInitialDisclaimer") private var hasShownInitialDisclaimer = false
     
     @Query(
         filter: #Predicate<Question> { question in
@@ -43,8 +44,12 @@ struct ContentView: View {
                 topicList
                     .navigationTitle("SESATS 10")
                     .navigationBarTitleDisplayMode(.large)
-                    .sheet(isPresented: $showDisclaimer) {
+                    .sheet(isPresented: $showDisclaimer, onDismiss: {
+                        hasShownInitialDisclaimer = true
+                    }) {
                         DisclaimerView()
+                            .presentationDetents([.large])
+                            .presentationDragIndicator(.visible)
                     }
                     .sheet(isPresented: $showPrivacyPolicy) {
                         PrivacyPolicyView()
@@ -53,6 +58,12 @@ struct ContentView: View {
                         footer
                     }
             }
+        }
+        .task {
+            guard !hasShownInitialDisclaimer else { return }
+            try? await Task.sleep(for: .seconds(1))
+            guard !Task.isCancelled, !hasShownInitialDisclaimer else { return }
+            showDisclaimer = true
         }
     }
     
