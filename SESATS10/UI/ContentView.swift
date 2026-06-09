@@ -40,7 +40,6 @@ struct ContentView: View {
             ZStack {
                 Theme.bg
                     .ignoresSafeArea()
-
                 topicList
                     .navigationTitle("SESATS 10")
                     .navigationBarTitleDisplayMode(.large)
