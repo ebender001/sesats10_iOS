@@ -29,42 +29,43 @@ struct QuestionListView: View {
     }
     
     var body: some View {
-        ZStack {
-            Theme.bg
-                .ignoresSafeArea()
+        ScrollView {
+            LazyVStack(spacing: 14) {
+                ForEach(Array(topicQuestions.enumerated()), id: \.element.id) { index, question in
+                    NavigationLink {
+                        QuestionDetailLoaderView(questionID: question.id, sectionTitle: topic)
+                    } label: {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("\(index + 1).")
+                                .font(.caption)
+                                .foregroundStyle(Theme.textSecondary)
 
-            ScrollView {
-                LazyVStack(spacing: 14) {
-                    ForEach(Array(topicQuestions.enumerated()), id: \.element.id) { index, question in
-                        NavigationLink {
-                            QuestionDetailLoaderView(questionID: question.id, sectionTitle: topic)
-                        } label: {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("\(index + 1).")
-                                    .font(.caption)
-                                    .foregroundStyle(Theme.textSecondary)
-
-                                Text(question.questionText)
-                                    .font(.headline)
-                                    .foregroundStyle(.primary)
-                                    .multilineTextAlignment(.leading)
-                                    .lineLimit(4)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .cardStyle()
-                            .opacity(answeredQuestionIDs.contains(question.id) ? 0.6 : 1.0)
+                            Text(question.questionText)
+                                .font(.headline)
+                                .foregroundStyle(.primary)
+                                .multilineTextAlignment(.leading)
+                                .lineLimit(4)
                         }
-                        .buttonStyle(.plain)
-                        .disabled(answeredQuestionIDs.contains(question.id))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .glassCardStyle()
+                        .opacity(answeredQuestionIDs.contains(question.id) ? 0.6 : 1.0)
                     }
+                    .buttonStyle(.plain)
+                    .disabled(answeredQuestionIDs.contains(question.id))
                 }
-                .padding(.horizontal)
-                .padding(.top, 8)
-                .padding(.bottom, 20)
             }
+            .padding(.horizontal)
+            .padding(.top, 8)
+            .padding(.bottom, 20)
         }
+        .scrollContentBackground(.hidden)
+        .background(Color.clear)
         .navigationTitle(topic)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .containerBackground(for: .navigation) {
+            Theme.screenBackground(for: topic)
+        }
         .tint(Theme.accent)
     }
 }

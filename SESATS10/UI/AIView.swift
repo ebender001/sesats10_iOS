@@ -54,15 +54,27 @@ struct AIView: View {
         NavigationStack {
             VStack {
                 Form {
-                    Section(header: Text("Question")) {
+                    AISectionHeader(title: "Question")
+                        .listRowInsets(EdgeInsets(top: 12, leading: 0, bottom: 0, trailing: 0))
+                        .listRowBackground(Color.clear)
+
+                    Section {
                         Text(question.questionText)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .glassCardStyle()
+                            .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                            .listRowBackground(Color.clear)
                     }
 
-                    Section(header: Text("A.I. Response")) {
+                    AISectionHeader(title: "A.I. Response")
+                        .listRowInsets(EdgeInsets(top: 12, leading: 0, bottom: 0, trailing: 0))
+                        .listRowBackground(Color.clear)
+
+                    Section {
                         if isLoading {
                             VStack(alignment: .leading, spacing: 8) {
                                 HStack {
-                                    Text("Generating AI analysis… This educational content may not fully reflect current guidelines and should be independently verified.")
+                                    Text("Generating AI analysis... This educational content may not fully reflect current guidelines and should be independently verified.")
                                         .foregroundStyle(.secondary)
                                     Spacer()
                                     ProgressView()
@@ -74,7 +86,10 @@ struct AIView: View {
                                         .foregroundStyle(.yellow)
                                 }
                             }
-                            .padding(.vertical, 6)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .glassCardStyle()
+                            .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                            .listRowBackground(Color.clear)
                             .transition(.opacity)
                         }
 
@@ -82,14 +97,27 @@ struct AIView: View {
                             if !isLoading {
                                 Text("No AI response yet.")
                                     .foregroundStyle(.secondary)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .glassCardStyle()
+                                    .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                                    .listRowBackground(Color.clear)
                             }
                         } else {
                             markdownText(formattedResponseText(responseText))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .glassCardStyle()
+                                .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                                .listRowBackground(Color.clear)
+
                             CardioThoraxiaPromoCard()
+                                .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                                .listRowBackground(Color.clear)
                         }
                     }
                     .animation(.easeInOut(duration: 0.3), value: isLoading)
                 }
+                .scrollContentBackground(.hidden)
+                .background(Color.clear)
                 .alert(
                     "AI Update",
                     isPresented: $showAlert,
@@ -112,6 +140,11 @@ struct AIView: View {
                 loadingWarningTask?.cancel()
             }
             .navigationTitle("Update")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbarBackground(.hidden, for: .navigationBar)
+            .containerBackground(for: .navigation) {
+                Theme.aiScreenBackground
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -292,5 +325,24 @@ struct AIView: View {
                 return "\(displayKey): **\(displayValue)**"
             }
             .joined(separator: "\n")
+    }
+}
+
+struct AISectionHeader: View {
+    let title: String
+
+    var body: some View {
+        Text(title)
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(Theme.textSecondary)
+            .textCase(nil)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 7)
+            .glassEffect(.regular, in: .capsule)
+            .overlay(
+                Capsule()
+                    .strokeBorder(Color.white.opacity(0.32), lineWidth: 1)
+            )
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

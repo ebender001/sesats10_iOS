@@ -34,7 +34,7 @@ struct TopicRowView: View {
 
             TopicProgressGauge(progress: progress)
         }
-        .cardStyle()
+        .glassCardStyle()
         .contentShape(Rectangle())
     }
 }

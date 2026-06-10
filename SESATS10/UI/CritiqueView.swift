@@ -51,38 +51,37 @@ struct CritiqueView: View {
                         Spacer()
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .cardStyle()
+                    .glassCardStyle()
+                    .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(Rectangle())
                 .buttonStyle(.plain)
+                .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
                 .listRowBackground(Color.clear)
                 .popoverTip(aiTip, arrowEdge: .top)
             }
 
-            Section("Question") {
+            CritiqueSectionHeader(title: "Question")
+                .listRowInsets(EdgeInsets(top: 12, leading: 0, bottom: 0, trailing: 0))
+                .listRowBackground(Color.clear)
+
+            Section {
                 Text(question.questionText)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .background(Theme.surface)
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(Theme.divider.opacity(0.7), lineWidth: 1)
-                    )
+                    .glassCardStyle()
+                    .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
                     .listRowBackground(Color.clear)
             }
 
-            Section("Correct Answer: \(question.correctAnswer.uppercased())") {
+            CritiqueSectionHeader(title: "Correct Answer: \(question.correctAnswer.uppercased())")
+                .listRowInsets(EdgeInsets(top: 12, leading: 0, bottom: 0, trailing: 0))
+                .listRowBackground(Color.clear)
+
+            Section {
                 Text(displayCorrectAnswer())
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .background(Theme.surface)
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(Theme.divider.opacity(0.7), lineWidth: 1)
-                    )
+                    .glassCardStyle()
+                    .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
                     .listRowBackground(Color.clear)
             }
 
@@ -93,26 +92,29 @@ struct CritiqueView: View {
                     .transition(.opacity.combined(with: .offset(y: 10)))
             }
 
-            Section("Critique") {
+            CritiqueSectionHeader(title: "Critique")
+                .listRowInsets(EdgeInsets(top: 12, leading: 0, bottom: 0, trailing: 0))
+                .listRowBackground(Color.clear)
+
+            Section {
                 Text(question.critique)
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .background(Theme.surface)
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(Theme.divider.opacity(0.7), lineWidth: 1)
-                    )
+                    .glassCardStyle()
+                    .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
                     .listRowBackground(Color.clear)
             }
         }
         // Theme (Form-friendly)
         .scrollContentBackground(.hidden)
-        .background(Theme.bg.ignoresSafeArea())
+        .background(Color.clear)
         .tint(Theme.accent)
         .navigationTitle("Critique")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .containerBackground(for: .navigation) {
+            Theme.screenBackground(for: question.section)
+        }
         .onAppear {
             guard shouldShowOralBoardsPromo else { return }
 
@@ -163,5 +165,24 @@ struct CritiqueView: View {
 
     private func openOralBoardsApp() {
         openURL(oralBoardsAppStoreURL)
+    }
+}
+
+private struct CritiqueSectionHeader: View {
+    let title: String
+
+    var body: some View {
+        Text(title)
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(Theme.textSecondary)
+            .textCase(nil)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 7)
+            .glassEffect(.regular, in: .capsule)
+            .overlay(
+                Capsule()
+                    .strokeBorder(Color.white.opacity(0.32), lineWidth: 1)
+            )
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

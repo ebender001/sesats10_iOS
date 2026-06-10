@@ -6,12 +6,11 @@
 //
 
 import SwiftUI
+import AVKit
 
 struct MediaListView: View {
-    
     private let imageAssets: [String]
     private let movieAssets: [String]
-    @State private var selection: MediaSelection? = nil
 
     init(question: Question) {
         self.imageAssets = question.questionImageAssets
@@ -22,56 +21,30 @@ struct MediaListView: View {
         self.imageAssets = detail.questionImageAssets
         self.movieAssets = detail.questionMovieAssets
     }
-    
+
     var body: some View {
-        List {
-            ForEach(Array(imageAssets.enumerated()), id: \.offset) { index, asset in
-                Button {
-                    selection = MediaSelection(name: asset, type: .image)
-                } label: {
-                    HStack {
-                        Text("Image \(index + 1)")
-                            .font(.headline)
-                            .foregroundStyle(.primary)
-
-                        Spacer()
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .cardStyle()
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 14) {
+                ForEach(Array(imageAssets.enumerated()), id: \.offset) { index, asset in
+                    MediaImageCard(assetName: asset, title: "Image \(index + 1)")
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(Rectangle())
-                .buttonStyle(.plain)
-                .listRowBackground(Color.clear)
-            }
-            ForEach(Array(movieAssets.enumerated()), id: \.offset) { index, asset in
-                Button {
-                    selection = MediaSelection(name: asset, type: .video)
-                } label: {
-                    HStack {
-                        Text("Video \(index + 1)")
-                            .font(.headline)
-                            .foregroundStyle(.primary)
 
-                        Spacer()
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .cardStyle()
+                ForEach(Array(movieAssets.enumerated()), id: \.offset) { index, asset in
+                    MediaVideoCard(assetName: asset, title: "Video \(index + 1)")
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(Rectangle())
-                .buttonStyle(.plain)
-                .listRowBackground(Color.clear)
             }
+            .padding(.horizontal)
+            .padding(.top, 8)
+            .padding(.bottom, 20)
         }
-        .sheet(item: $selection) { sel in
-            // Use a constant binding so the detail view doesn't depend on transient state changes.
-            MediaDetailView(media: .constant(sel.name), mediaType: sel.type)
-        }
-        .navigationTitle("Media")
-        .listRowSeparator(.hidden)
         .scrollContentBackground(.hidden)
-        .background(Theme.bg.ignoresSafeArea())
+        .background(Color.clear)
+        .navigationTitle("Media")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .containerBackground(for: .navigation) {
+            Theme.screenBackground
+        }
     }
 }
 
@@ -86,6 +59,79 @@ enum MediaType {
     case video
 }
 
-//#Preview {
-//    MediaListView()
-//}
+private struct MediaImageCard: View {
+    let assetName: String
+    let title: String
+
+    private var uiImage: UIImage? {
+        guard let path = Bundle.main.path(forResource: assetName, ofType: nil) else { return nil }
+        return UIImage(contentsOfFile: path)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Theme.textSecondary)
+
+            if let uiImage {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFit()
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            } else {
+                ContentUnavailableView(
+                    "Image Unavailable",
+                    systemImage: "photo",
+                    description: Text(assetName)
+                )
+                .frame(maxWidth: .infinity, minHeight: 160)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .glassCardStyle()
+    }
+}
+
+private struct MediaVideoCard: View {
+    let assetName: String
+    let title: String
+
+    @State private var player: AVPlayer?
+
+    private var url: URL? {
+        Bundle.main.url(forResource: assetName, withExtension: nil)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Theme.textSecondary)
+
+            if url != nil {
+                VideoPlayer(player: player)
+                    .frame(minHeight: 220)
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .onAppear {
+                        if let url, player == nil {
+                            player = AVPlayer(url: url)
+                        }
+                    }
+                    .onDisappear {
+                        player?.pause()
+                        player = nil
+                    }
+            } else {
+                ContentUnavailableView(
+                    "Video Unavailable",
+                    systemImage: "video",
+                    description: Text(assetName)
+                )
+                .frame(maxWidth: .infinity, minHeight: 160)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .glassCardStyle()
+    }
+}

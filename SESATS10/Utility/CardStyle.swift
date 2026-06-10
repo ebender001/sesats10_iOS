@@ -29,6 +29,21 @@ struct CardStyle: ViewModifier {
     }
 }
 
+struct GlassCardStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .padding(.vertical, 14)
+            .padding(.horizontal, 16)
+            .glassEffect(.regular, in: .rect(cornerRadius: 18))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(Color.white.opacity(0.35), lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(0.08), radius: 10, y: 5)
+    }
+}
+
 extension View {
     func cardStyle() -> some View { modifier(CardStyle()) }
+    func glassCardStyle() -> some View { modifier(GlassCardStyle()) }
 }

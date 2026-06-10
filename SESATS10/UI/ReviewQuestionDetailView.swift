@@ -11,7 +11,7 @@ import SwiftData
 struct ReviewQuestionDetailView: View {
     let question: Question
     @Query var aiUpdates: [AIUpdate]
-    @State private var showMediaList = false
+    @State private var expandedMediaID: String?
     @State private var showCritique = false
     @State private var showAiUpdate = false
     
@@ -45,15 +45,7 @@ struct ReviewQuestionDetailView: View {
     }
     
     var body: some View {
-        ZStack {
-            Theme.bg
-                .ignoresSafeArea()
-
-            questionDetail
-        }
-        .navigationDestination(isPresented: $showMediaList) {
-            MediaListView(question: question)
-        }
+        questionDetail
         .navigationDestination(isPresented: $showCritique) {
             CritiqueView(question: question)
         }
@@ -74,32 +66,28 @@ struct ReviewQuestionDetailView: View {
                             Image(systemName: "sparkles")
                                 .foregroundStyle(Theme.accent)
 
-                            Text("AI Update")
+                            Text("AI Update and Critique")
                                 .font(.headline)
                                 .foregroundStyle(.primary)
 
                             Spacer()
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .cardStyle()
+                        .glassCardStyle()
+                        .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .contentShape(Rectangle())
                     .buttonStyle(.plain)
                 }
 
                 // Question stem
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Question")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Theme.textSecondary)
+                Text(question.questionText)
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .glassCardStyle()
 
-                    Text(question.questionText)
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .cardStyle()
+                reviewMediaCards
 
                 // Your answer summary
                 let answeredCorrectly = question.selectedAnswer.lowercased() == question.correctAnswer.lowercased()
@@ -120,11 +108,11 @@ struct ReviewQuestionDetailView: View {
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .background(Theme.surface)
+                .glassEffect(.regular, in: .rect(cornerRadius: 16))
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(Theme.divider.opacity(0.6), lineWidth: 1)
+                        .stroke(Color.white.opacity(0.35), lineWidth: 1)
                 )
 
                 // Options (correct highlighted)
@@ -169,15 +157,15 @@ struct ReviewQuestionDetailView: View {
                             .padding(.horizontal, 12)
                             .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        .background(isCorrect ? Theme.success.opacity(0.08) : Theme.surface)
+                        .glassEffect(.regular, in: .rect(cornerRadius: 14))
                         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                         .overlay(
                             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .stroke(Theme.divider.opacity(0.6), lineWidth: 1)
+                                .stroke(isCorrect ? Theme.success.opacity(0.45) : Color.white.opacity(0.35), lineWidth: 1)
                         )
                     }
                 }
-                .cardStyle()
+                .glassCardStyle()
             }
             .padding(.horizontal)
             .padding(.top, 8)
@@ -185,25 +173,79 @@ struct ReviewQuestionDetailView: View {
         }
         .navigationTitle(question.section)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .scrollContentBackground(.hidden)
+        .background(Color.clear)
+        .containerBackground(for: .navigation) {
+            Theme.screenBackground(for: question.section)
+        }
         .tint(Theme.accent)
         .toolbar {
-            if hasMedia || showsCritiqueToolbarAction {
+            if showsCritiqueToolbarAction {
                 ToolbarItem(placement: .topBarTrailing) {
-                    HStack(spacing: 14) {
-                        if hasMedia {
-                            Button("Media") {
-                                showMediaList.toggle()
-                            }
-                        }
-
-                        if showsCritiqueToolbarAction {
-                            Button("Critique") {
-                                showCritique.toggle()
-                            }
-                        }
+                    Button("Critique") {
+                        showCritique.toggle()
                     }
                 }
             }
+        }
+    }
+
+    private var reviewMediaItems: [QuestionMediaItem] {
+        var imageNumber = 0
+        var videoNumber = 0
+
+        let imageItems = question.questionImageAssets.map { asset in
+            imageNumber += 1
+            return QuestionMediaItem(
+                id: "image-\(imageNumber)-\(asset)",
+                assetName: asset,
+                title: "Image \(imageNumber)",
+                type: .image
+            )
+        }
+
+        let videoItems = question.questionMovieAssets.map { asset in
+            videoNumber += 1
+            return QuestionMediaItem(
+                id: "video-\(videoNumber)-\(asset)",
+                assetName: asset,
+                title: "Video \(videoNumber)",
+                type: .video
+            )
+        }
+
+        return imageItems + videoItems
+    }
+
+    private var reviewMediaCards: some View {
+        ForEach(reviewMediaItems) { item in
+            switch item.type {
+            case .image:
+                CollapsibleMediaImageCard(
+                    id: item.id,
+                    assetName: item.assetName,
+                    title: item.title,
+                    isExpanded: expandedMediaID == item.id
+                ) {
+                    toggleMedia(item.id)
+                }
+            case .video:
+                CollapsibleMediaVideoCard(
+                    id: item.id,
+                    assetName: item.assetName,
+                    title: item.title,
+                    isExpanded: expandedMediaID == item.id
+                ) {
+                    toggleMedia(item.id)
+                }
+            }
+        }
+    }
+
+    private func toggleMedia(_ id: String) {
+        withAnimation(.snappy) {
+            expandedMediaID = expandedMediaID == id ? nil : id
         }
     }
 }

@@ -24,28 +24,14 @@ struct ReviewQuestionListView: View {
     }
     
     var body: some View {
-        if selectedQuestions.isEmpty {
-            ZStack {
-                Theme.bg
-                    .ignoresSafeArea()
-
+        Group {
+            if selectedQuestions.isEmpty {
                 ContentUnavailableView(
                     "Review Questions",
                     systemImage: "list.bullet",
                     description: Text("No \(correctlyAnswered ? "correctly" : "incorrectly") answered questions to display.")
                 )
-            }
-            .navigationTitle(
-                correctlyAnswered ?
-                "Answered Correctly" :
-                "Answered Incorrectly"
-            )
-            .navigationBarTitleDisplayMode(.inline)
-        } else {
-            ZStack {
-                Theme.bg
-                    .ignoresSafeArea()
-
+            } else {
                 ScrollView {
                     LazyVStack(spacing: 14) {
                         ForEach(selectedQuestions) { question in
@@ -64,7 +50,7 @@ struct ReviewQuestionListView: View {
 //                                        .foregroundStyle(Theme.textSecondary)
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .cardStyle()
+                                .glassCardStyle()
                             }
                             .buttonStyle(.plain)
                         }
@@ -73,16 +59,21 @@ struct ReviewQuestionListView: View {
                     .padding(.top, 8)
                     .padding(.bottom, 20)
                 }
+                .scrollContentBackground(.hidden)
+                .background(Color.clear)
             }
-            .navigationTitle(
-                correctlyAnswered ?
-                "Answered Correctly" :
-                "Answered Incorrectly"
-            )
-            .navigationBarTitleDisplayMode(.inline)
-            .tint(Theme.accent)
         }
-        
+        .navigationTitle(
+            correctlyAnswered ?
+            "Answered Correctly" :
+            "Answered Incorrectly"
+        )
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .containerBackground(for: .navigation) {
+            Theme.screenBackground
+        }
+        .tint(Theme.accent)
     }
 }
 

@@ -15,19 +15,36 @@ struct AIDetailView: View {
     @State private var isAIUpdateExpanded = true
     
     var body: some View {
-        Form {
-            Section {
-                DisclosureGroup("Critique", isExpanded: $isCritiqueExpanded) {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 14) {
+                GlassDisclosureCard(
+                    title: "Critique",
+                    isExpanded: $isCritiqueExpanded
+                ) {
                     Text(question.critique)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
-            }
-            Section {
-                DisclosureGroup("AI Update", isExpanded: $isAIUpdateExpanded) {
+
+                GlassDisclosureCard(
+                    title: "AI Update",
+                    isExpanded: $isAIUpdateExpanded
+                ) {
                     markdownText(formattedResponseText(aiUpdate.text))
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
+            .padding(.horizontal)
+            .padding(.top, 8)
+            .padding(.bottom, 20)
         }
+        .scrollContentBackground(.hidden)
+        .background(Color.clear)
         .navigationTitle("AI Update")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .containerBackground(for: .navigation) {
+            Theme.aiScreenBackground
+        }
     }
 
     @ViewBuilder
@@ -63,6 +80,46 @@ struct AIDetailView: View {
                 return "\(displayKey): **\(displayValue)**"
             }
             .joined(separator: "\n")
+    }
+}
+
+private struct GlassDisclosureCard<Content: View>: View {
+    let title: String
+    @Binding var isExpanded: Bool
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Button {
+                withAnimation(.snappy) {
+                    isExpanded.toggle()
+                }
+            } label: {
+                HStack(spacing: 12) {
+                    Text(title)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+
+                    Spacer(minLength: 0)
+
+                    Image(systemName: "chevron.down")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.primary)
+                        .rotationEffect(.degrees(isExpanded ? 180 : 0))
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            if isExpanded {
+                content
+                    .font(.body)
+                    .foregroundStyle(.primary)
+                    .transition(.opacity.combined(with: .scale(scale: 0.98, anchor: .top)))
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .glassCardStyle()
     }
 }
 

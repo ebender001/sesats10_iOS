@@ -37,26 +37,26 @@ struct ContentView: View {
     
     var body: some View {
         NavigationStack {
-            ZStack {
-                Theme.bg
-                    .ignoresSafeArea()
-                topicList
-                    .navigationTitle("SESATS 10")
-                    .navigationBarTitleDisplayMode(.large)
-                    .sheet(isPresented: $showDisclaimer, onDismiss: {
-                        hasShownInitialDisclaimer = true
-                    }) {
-                        DisclaimerView()
-                            .presentationDetents([.large])
-                            .presentationDragIndicator(.visible)
-                    }
-                    .sheet(isPresented: $showPrivacyPolicy) {
-                        PrivacyPolicyView()
-                    }
-                    .safeAreaInset(edge: .bottom, spacing: 0) {
-                        footer
-                    }
-            }
+            topicList
+                .navigationTitle("SESATS 10")
+                .navigationBarTitleDisplayMode(.large)
+                .toolbarBackground(.hidden, for: .navigationBar)
+                .containerBackground(for: .navigation) {
+                    Theme.screenBackground
+                }
+                .sheet(isPresented: $showDisclaimer, onDismiss: {
+                    hasShownInitialDisclaimer = true
+                }) {
+                    DisclaimerView()
+                        .presentationDetents([.large])
+                        .presentationDragIndicator(.visible)
+                }
+                .sheet(isPresented: $showPrivacyPolicy) {
+                    PrivacyPolicyView()
+                }
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    footer
+                }
         }
         .task {
             guard !hasShownInitialDisclaimer else { return }
@@ -110,11 +110,23 @@ struct ContentView: View {
                     .foregroundStyle(.primary)
             } footer: {
                 if !databaseIsClean {
-                    Text("Reset database")
-                        .fontWeight(.medium)
-                        .onTapGesture {
-                            showResetConfirmation.toggle()
-                        }
+                    Button {
+                        showResetConfirmation.toggle()
+                    } label: {
+                        Text("Reset database")
+                            .font(.footnote.weight(.medium))
+                            .foregroundStyle(Theme.textSecondary)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .glassEffect(.regular, in: .capsule)
+                            .overlay(
+                                Capsule()
+                                    .strokeBorder(Color.white.opacity(0.35), lineWidth: 1)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.top, 8)
                 }
             }
         }
@@ -127,7 +139,7 @@ struct ContentView: View {
                   secondaryButton: .cancel())
         }
         .scrollContentBackground(.hidden)
-        .background(Theme.bg)
+        .background(Color.clear)
         .listStyle(.insetGrouped)
         .tint(Theme.accent)
     }
@@ -151,10 +163,20 @@ struct ContentView: View {
         }
         .font(.footnote)
         .foregroundStyle(Theme.textSecondary)
+        .padding(.horizontal, 24)
         .padding(.vertical, 10)
-        .frame(maxWidth: .infinity)
-        .background(Theme.bg)
-        .overlay(Divider().opacity(0.4), alignment: .top)
+        .background {
+            Capsule()
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    Capsule()
+                        .fill(Color.white.opacity(0.18))
+                )
+        }
+        .overlay(
+            Capsule()
+                .strokeBorder(Color.white.opacity(0.25), lineWidth: 1)
+        )
     }
 
     private var correctAnswersCount: Int {

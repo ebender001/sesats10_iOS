@@ -47,7 +47,7 @@ struct ScorecardRowView: View {
                 .font(.subheadline)
                 .foregroundStyle(Theme.textSecondary)
         }
-        .cardStyle()
+        .glassCardStyle()
         .contentShape(Rectangle())
     }
 }
