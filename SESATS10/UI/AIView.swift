@@ -9,33 +9,6 @@ import SwiftUI
 import SwiftData
 import ParseSwift
 
-private struct GenerateSesatsAIUpdateCloud: ParseCloudable {
-    struct Response: Decodable {
-        let text: String
-        let cached: Bool?
-        let model: String?
-        let promptVersion: Int?
-        let questionId: String?
-    }
-
-    typealias ReturnType = Response
-
-    var functionJobName = "generateSesatsAIUpdate"
-
-    let questionId: String
-    let questionText: String
-    let distractorA: String
-    let distractorB: String
-    let distractorC: String
-    let distractorD: String
-    let distractorE: String
-    let correctAnswer: String
-    let critique: String
-    let title: String
-    let section: String
-    let examId: String
-}
-
 struct AIView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
@@ -220,6 +193,18 @@ struct AIView: View {
         guard !questionID.isEmpty else {
             await MainActor.run {
                 responseText = "Question is missing an ID."
+                isLoading = false
+            }
+            return
+        }
+
+        let cachedText = await MainActor.run {
+            fetchCachedAIUpdate()?.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+
+        if let cachedText, !cachedText.isEmpty {
+            await MainActor.run {
+                responseText = cachedText
                 isLoading = false
             }
             return

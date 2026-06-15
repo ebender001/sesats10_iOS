@@ -194,7 +194,7 @@ struct ContentView: View {
         let answeredCount = answeredQuestions.filter { $0.section == topic }.count
         return Double(answeredCount) / Double(questionCount)
     }
-    
+
     func resetDatabase() {
         do {
             try deleteAll(of: Question.self, in: modelContext)

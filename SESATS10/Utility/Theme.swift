@@ -50,13 +50,19 @@ enum Theme {
             let width = geometry.size.width + safeAreaInsets.leading + safeAreaInsets.trailing
             let height = geometry.size.height + safeAreaInsets.top + safeAreaInsets.bottom
 
-            Image(imageName)
-                .resizable()
-                .scaledToFill()
-                .frame(width: width, height: height)
-                .clipped()
-                .offset(x: -safeAreaInsets.leading, y: -safeAreaInsets.top)
-                .ignoresSafeArea()
+            ZStack {
+                bg
+                    .ignoresSafeArea()
+
+                Image(imageName)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: width, height: height)
+                    .clipped()
+                    .offset(x: -safeAreaInsets.leading, y: -safeAreaInsets.top)
+                    .opacity(0.45)
+                    .ignoresSafeArea()
+            }
         }
     }
 }

@@ -86,6 +86,10 @@ struct QuestionDetailView: View {
                         .foregroundStyle(Theme.textSecondary)
 
                     ForEach(Array(distractors.enumerated()), id: \.offset) { index, distractor in
+                        let optionLetter = letters[index]
+                        let isSelectedAnswer = selectedAnswer.lowercased() == optionLetter.lowercased()
+                        let selectedAnswerIsCorrect = selectedAnswer.lowercased() == detail.correctAnswer.lowercased()
+
                         Button {
                             guard !hasAnswered else { return }
                             let letters = distractors.letterIndices()
@@ -94,7 +98,7 @@ struct QuestionDetailView: View {
                             showConfirmation.toggle()
                         } label: {
                             HStack(alignment: .top, spacing: 10) {
-                                Text("\(letters[index]).")
+                                Text("\(optionLetter).")
                                     .font(.headline)
                                     .foregroundStyle(.primary)
 
@@ -103,6 +107,10 @@ struct QuestionDetailView: View {
                                     .foregroundStyle(.primary)
                                     .multilineTextAlignment(.leading)
                                     .frame(maxWidth: .infinity, alignment: .leading)
+
+                                if hasAnswered && isSelectedAnswer {
+                                    AnswerSelectionBadge(isCorrect: selectedAnswerIsCorrect)
+                                }
                             }
                             .padding(.vertical, 10)
                             .padding(.horizontal, 12)
@@ -111,7 +119,7 @@ struct QuestionDetailView: View {
                                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                                     .stroke(Color.white.opacity(0.35), lineWidth: 1)
                             )
-                            .opacity(hasAnswered ? 0.6 : 1)
+                            .opacity(hasAnswered && !isSelectedAnswer ? 0.6 : 1)
                         }
                         .buttonStyle(.plain)
                         .disabled(hasAnswered)
@@ -500,6 +508,19 @@ struct CollapsibleMediaVideoCard: View {
     private func stopPlayback() {
         player?.pause()
         player = nil
+    }
+}
+
+private struct AnswerSelectionBadge: View {
+    let isCorrect: Bool
+
+    var body: some View {
+        Image(systemName: isCorrect ? "checkmark" : "xmark")
+            .font(.caption.weight(.bold))
+            .foregroundStyle(.white)
+            .frame(width: 24, height: 24)
+            .background(isCorrect ? Theme.success : Theme.error, in: Circle())
+            .accessibilityLabel(isCorrect ? "Correct answer" : "Incorrect answer")
     }
 }
 
