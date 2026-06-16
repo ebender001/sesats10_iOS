@@ -8,13 +8,13 @@
 import SwiftUI
 import SwiftData
 import ParseSwift
-import TipKit
 
 struct CritiqueView: View {
 
     let question: Question
-    let aiTip = AITip()
     private let oralBoardsAppStoreURL = URL(string: "https://apps.apple.com/us/app/oral-boards-ai/id6763632588")!
+    private let collapsedCritiqueMinimumCharacterCount = 400
+    private let collapsedCritiqueLineFillAllowance = 90
 
     @EnvironmentObject var entitlements: EntitlementManager
     @Environment(\.modelContext) private var modelContext
@@ -22,7 +22,6 @@ struct CritiqueView: View {
 
     @State private var showPaywall = false
     @State private var showOralBoardsPromo = false
-    @State private var hasAnimatedOralBoardsPromo = false
     @State private var isCritiqueExpanded = false
     @State private var aiUpdateText: String?
     @State private var aiUpdateIsLoading = false
@@ -31,20 +30,23 @@ struct CritiqueView: View {
     @State private var answerVerdict: AnswerVerdict = .unknown
     @State private var critiqueVerdict: CritiqueVerdict = .unknown
 
-    private var shouldShowOralBoardsPromo: Bool {
-        !question.selectedAnswer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            || question.answeredCorrectly
-            || question.answeredIncorrectly
-    }
-
     var body: some View {
         Form {
             Section {
                 Text("Question \(question.finalQuestionNumber) • \(question.section)")
                     .font(.headline)
                     .foregroundStyle(.primary)
+                    .padding(16)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .glassCardStyle()
+                    .background {
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .fill(Theme.surface.opacity(0.80))
+                    }
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .inset(by: 1)
+                            .strokeBorder(Theme.divider.opacity(0.7), lineWidth: 1)
+                    }
                     .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
                     .listRowBackground(Color.clear)
             }
@@ -53,7 +55,6 @@ struct CritiqueView: View {
                 aiUpdateVerdictCard
                     .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
                     .listRowBackground(Color.clear)
-                    .popoverTip(aiTip, arrowEdge: .top)
             }
 
             Section {
@@ -76,32 +77,36 @@ struct CritiqueView: View {
                             .textSelection(.enabled)
                             .transition(.opacity)
                     } else {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(question.critique)
-                                .foregroundStyle(.primary)
-                                .lineLimit(3)
-                                .multilineTextAlignment(.leading)
-
-                            Text("Show more")
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(Theme.accent)
-                        }
-                        .transition(.opacity)
+                        collapsedCritiquePreviewCard
+                            .transition(.opacity)
                     }
                 }
+                .padding(16)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
-                .glassCardStyle()
+                .background {
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(Theme.surface.opacity(0.80))
+                }
+                .overlay {
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .inset(by: 1)
+                        .strokeBorder(Theme.divider.opacity(0.7), lineWidth: 1)
+                }
                 .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                 .onTapGesture {
                     withAnimation(.easeInOut(duration: 0.22)) {
                         isCritiqueExpanded.toggle()
+                    }
+
+                    if isCritiqueExpanded {
+                        revealOralBoardsPromo()
                     }
                 }
                 .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
                 .listRowBackground(Color.clear)
             }
 
-            if shouldShowOralBoardsPromo && showOralBoardsPromo {
+            if showOralBoardsPromo {
                 OralBoardsPromoCard(action: openOralBoardsApp)
                     .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
                     .listRowBackground(Color.clear)
@@ -118,23 +123,8 @@ struct CritiqueView: View {
         .containerBackground(for: .navigation) {
             Theme.screenBackground(for: question.section)
         }
-        .onAppear {
-            guard shouldShowOralBoardsPromo else { return }
-
-            if hasAnimatedOralBoardsPromo {
-                showOralBoardsPromo = true
-                return
-            }
-
-            hasAnimatedOralBoardsPromo = true
-
-            DispatchQueue.main.async {
-                withAnimation(.easeOut(duration: 0.25)) {
-                    showOralBoardsPromo = true
-                }
-            }
-        }
         .task(id: question.id) {
+            resetCardExpansionState()
             await entitlements.refresh()
             await fetchAIUpdateIfNeeded()
         }
@@ -153,6 +143,56 @@ struct CritiqueView: View {
                 "com.cvoffice.sesats10.annual"
             ])
             .environmentObject(entitlements)
+        }
+    }
+
+    private var collapsedCritiquePreview: String {
+        let critique = question.critique
+        guard critique.count > collapsedCritiqueMinimumCharacterCount else { return critique }
+
+        let minimumEndIndex = critique.index(
+            critique.startIndex,
+            offsetBy: collapsedCritiqueMinimumCharacterCount
+        )
+        let allowedEndIndex = critique.index(
+            minimumEndIndex,
+            offsetBy: collapsedCritiqueLineFillAllowance,
+            limitedBy: critique.endIndex
+        ) ?? critique.endIndex
+
+        var previewEndIndex = allowedEndIndex
+        if allowedEndIndex < critique.endIndex,
+           let wordBoundaryIndex = critique[minimumEndIndex..<allowedEndIndex].lastIndex(where: { $0.isWhitespace }),
+           wordBoundaryIndex > minimumEndIndex {
+            previewEndIndex = wordBoundaryIndex
+        }
+
+        return String(critique[..<previewEndIndex]).trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var collapsedCritiquePreviewCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(collapsedCritiquePreview)
+                .foregroundStyle(.primary)
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .mask {
+                    LinearGradient(
+                        stops: [
+                            .init(color: .black, location: 0),
+                            .init(color: .black, location: 0.68),
+                            .init(color: .clear, location: 1)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+
+            Text("Show more")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Theme.accent)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
@@ -177,7 +217,7 @@ struct CritiqueView: View {
                             .foregroundStyle(Theme.textSecondary)
                     }
 
-                    if entitlements.hasAIAccess, aiUpdateIsLoading {
+                    if aiUpdateIsLoading {
                         HStack(spacing: 8) {
                             ProgressView()
                             Text("Loading AI Update...")
@@ -222,8 +262,12 @@ struct CritiqueView: View {
                 }
             }
         }
+        .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .glassCardStyle()
+        .background {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(Theme.surface.opacity(0.80))
+        }
         .overlay {
             RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .inset(by: 1)
@@ -231,12 +275,14 @@ struct CritiqueView: View {
         }
         .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .onTapGesture {
-            aiTip.invalidate(reason: .actionPerformed)
-
             if entitlements.hasAIAccess {
                 guard aiUpdateText != nil else { return }
                 withAnimation(.easeInOut(duration: 0.22)) {
                     isAIUpdateExpanded.toggle()
+                }
+
+                if isAIUpdateExpanded {
+                    revealOralBoardsPromo()
                 }
             } else {
                 showPaywall = true
@@ -245,10 +291,6 @@ struct CritiqueView: View {
     }
 
     private var aiUpdateCardTitle: String {
-        if !entitlements.hasAIAccess {
-            return "AI Update Available"
-        }
-
         if aiUpdateIsLoading {
             return "AI Update"
         }
@@ -270,16 +312,12 @@ struct CritiqueView: View {
     }
 
     private var aiUpdateCardBody: String {
-        if !entitlements.hasAIAccess {
-            return "Modern practice review is available for this question."
-        }
-
         if aiUpdateIsLoading {
             return "Loading AI Update..."
         }
 
         if aiUpdateError != nil {
-            return "Unable to load the cached AI Update. Please try again."
+            return "Unable to load the AI Update. Please try again."
         }
 
         switch answerVerdict {
@@ -295,7 +333,7 @@ struct CritiqueView: View {
     }
 
     private var aiUpdateCritiqueNote: String? {
-        guard entitlements.hasAIAccess, !aiUpdateIsLoading, aiUpdateError == nil else { return nil }
+        guard !aiUpdateIsLoading, aiUpdateError == nil else { return nil }
 
         switch critiqueVerdict {
         case .current:
@@ -310,7 +348,7 @@ struct CritiqueView: View {
     }
 
     private var aiUpdateBorderColor: Color {
-        guard entitlements.hasAIAccess, !aiUpdateIsLoading, aiUpdateError == nil else {
+        guard !aiUpdateIsLoading, aiUpdateError == nil else {
             return Theme.divider.opacity(0.7)
         }
 
@@ -328,7 +366,6 @@ struct CritiqueView: View {
 
     @MainActor
     private func fetchAIUpdateIfNeeded() async {
-        guard entitlements.hasAIAccess else { return }
         guard aiUpdateText == nil, !aiUpdateIsLoading else { return }
 
         let questionID = question.id.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -470,6 +507,20 @@ struct CritiqueView: View {
                 return "\(displayKey): **\(displayValue)**"
             }
             .joined(separator: "\n")
+    }
+
+    private func resetCardExpansionState() {
+        isCritiqueExpanded = false
+        isAIUpdateExpanded = false
+        showOralBoardsPromo = false
+    }
+
+    private func revealOralBoardsPromo() {
+        guard !showOralBoardsPromo else { return }
+
+        withAnimation(.easeOut(duration: 0.25)) {
+            showOralBoardsPromo = true
+        }
     }
 
     private func openOralBoardsApp() {

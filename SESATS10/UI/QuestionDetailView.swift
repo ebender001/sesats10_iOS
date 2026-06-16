@@ -205,9 +205,9 @@ struct QuestionDetailView: View {
         .animation(.snappy(duration: 0.25), value: showCritiqueToolbarItem)
         .alert("\(answeredCorrectly ? "Correct" : "Incorrect") Answer",
                isPresented: $showAnswerStatus) {
-            Button("OK", role: .close) {
-                dismiss()
-            }
+//            Button("OK", role: .close) {
+//                dismiss()
+//            }
             if !detail.critique.isEmpty, let persistedQuestion = questionState {
                 Button("View Critique", role: .confirm) {
                     activeQuestionState = persistedQuestion
@@ -216,8 +216,8 @@ struct QuestionDetailView: View {
             }
         } message: {
             let answerStatus = answeredCorrectly ?
-            "correctly. You can view the critique for more detail and generate AI updates there, or just keep going." :
-            "incorrectly. View critique for the correct answer and to generate AI updates."
+            "correctly. You can view the critique for more detail and generate AI updates." :
+            "incorrectly. You can view critique for more detail and generate AI updates."
             Text("You answered \(answerStatus).")
         }
         .alert("Confirm Answer", isPresented: $showConfirmation) {
