@@ -51,9 +51,7 @@ enum Theme {
     /// larger canvas the same opacity reads as visual noise behind list text,
     /// so it's dialed down there while iPhone keeps its original look.
     private static var backgroundImageOpacity: Double {
-        #if os(macOS)
-        0.12
-        #elseif os(iOS)
+        #if os(iOS)
         UIDevice.current.userInterfaceIdiom == .pad ? 0.12 : 0.45
         #else
         0.45
@@ -70,6 +68,12 @@ enum Theme {
                 bg
                     .ignoresSafeArea()
 
+                // On macOS this attaches via a plain `.background`, not
+                // `.containerBackground(for: .navigation)`, so the GeometryReader
+                // here is sized to the content rather than the window — the art
+                // ends up cropped/misaligned instead of filling the pane. Rather
+                // than fight that, Mac just gets the flat background color.
+                #if !os(macOS)
                 Image(imageName)
                     .resizable()
                     .scaledToFill()
@@ -78,6 +82,7 @@ enum Theme {
                     .offset(x: -safeAreaInsets.leading, y: -safeAreaInsets.top)
                     .opacity(backgroundImageOpacity)
                     .ignoresSafeArea()
+                #endif
             }
         }
     }
