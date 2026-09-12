@@ -105,25 +105,34 @@ struct SidebarSplitView: View {
                 // A Section footer isn't rendered by macOS's sidebar list style
                 // (it is on iPad's), so this lives as a normal row instead.
                 if !answeredQuestions.isEmpty {
-                    Button(role: .destructive) {
+                    SidebarActionRow(
+                        title: "Reset Scorecard",
+                        systemImage: "trash",
+                        iconTint: Theme.error,
+                        textTint: .primary
+                    ) {
                         showResetConfirmation.toggle()
-                    } label: {
-                        Label("Reset Scorecard", systemImage: "trash")
                     }
                 }
             }
 
             Section("About") {
-                Button {
+                SidebarActionRow(
+                    title: "Disclaimer",
+                    systemImage: "info.circle",
+                    iconTint: Theme.accent,
+                    textTint: Theme.accent
+                ) {
                     showDisclaimer.toggle()
-                } label: {
-                    Label("Disclaimer", systemImage: "info.circle")
                 }
 
-                Button {
+                SidebarActionRow(
+                    title: "Privacy Policy",
+                    systemImage: "hand.raised",
+                    iconTint: Theme.accent,
+                    textTint: Theme.accent
+                ) {
                     openURL(Constants.privacyPolicyURL)
-                } label: {
-                    Label("Privacy Policy", systemImage: "hand.raised")
                 }
             }
         }
@@ -191,6 +200,35 @@ struct SidebarSplitView: View {
 
 // MARK: - Sidebar rows (compact — built for a ~300pt column, not a phone card)
 
+/// A tappable icon+title row matching SidebarTopicRow/SidebarScorecardRow's
+/// plain layout exactly, rather than a `Button` — a `Button` inside a
+/// selectable macOS sidebar List picks up a persistent focus/interaction
+/// background no button style removes, which this avoids entirely.
+private struct SidebarActionRow: View {
+    let title: String
+    let systemImage: String
+    let iconTint: Color
+    let textTint: Color
+    let action: () -> Void
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: systemImage)
+                .frame(width: 20, height: 20)
+                .foregroundStyle(iconTint)
+
+            Text(title)
+                .font(.body)
+                .foregroundStyle(textTint)
+
+            Spacer(minLength: 0)
+        }
+        .padding(.vertical, 2)
+        .contentShape(Rectangle())
+        .onTapGesture(perform: action)
+    }
+}
+
 private struct SidebarTopicRow: View {
     let topic: Topic
     let progress: Double
@@ -235,14 +273,33 @@ private struct SidebarScorecardRow: View {
         }
     }
 
+    private var systemImageName: String {
+        switch scorecard.title {
+        case "Correct":
+            return "checkmark.circle.fill"
+        case "Incorrect":
+            return "xmark.circle.fill"
+        default:
+            return "circle.fill"
+        }
+    }
+
     var body: some View {
         HStack(spacing: 10) {
+            #if os(macOS)
+            Image(systemName: systemImageName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 20, height: 20)
+                .foregroundStyle(iconTint)
+            #else
             Image(scorecard.imageString)
                 .renderingMode(.template)
                 .resizable()
                 .scaledToFit()
                 .frame(width: 20, height: 20)
                 .foregroundStyle(iconTint)
+            #endif
 
             Text(scorecard.title)
                 .font(.body)
