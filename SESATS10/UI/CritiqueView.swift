@@ -30,6 +30,17 @@ struct CritiqueView: View {
     @State private var answerVerdict: AnswerVerdict = .unknown
     @State private var critiqueVerdict: CritiqueVerdict = .unknown
 
+    /// Phone/iPad rely on Form's built-in grouped margin, so the cards use
+    /// zero extra inset there; macOS's Form doesn't provide that margin on
+    /// its own, so cards need explicit horizontal breathing room there.
+    private var cardRowInsets: EdgeInsets {
+        #if os(macOS)
+        EdgeInsets(top: 4, leading: 20, bottom: 4, trailing: 20)
+        #else
+        EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0)
+        #endif
+    }
+
     var body: some View {
         Form {
             Section {
@@ -47,13 +58,13 @@ struct CritiqueView: View {
                             .inset(by: 1)
                             .strokeBorder(Theme.divider.opacity(0.7), lineWidth: 1)
                     }
-                    .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                    .listRowInsets(cardRowInsets)
                     .listRowBackground(Color.clear)
             }
 
             Section {
                 aiUpdateVerdictCard
-                    .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                    .listRowInsets(cardRowInsets)
                     .listRowBackground(Color.clear)
             }
 
@@ -102,18 +113,19 @@ struct CritiqueView: View {
                         revealOralBoardsPromo()
                     }
                 }
-                .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                .listRowInsets(cardRowInsets)
                 .listRowBackground(Color.clear)
             }
 
             if showOralBoardsPromo {
                 OralBoardsPromoCard(action: openOralBoardsApp)
-                    .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                    .listRowInsets(cardRowInsets)
                     .listRowBackground(Color.clear)
                     .transition(.opacity.combined(with: .offset(y: 10)))
             }
         }
         // Theme (Form-friendly)
+        .formStyle(.grouped)
         .scrollContentBackground(.hidden)
         .background(Color.clear)
         .tint(Theme.accent)
