@@ -23,6 +23,7 @@ private enum QuestionRoute: Hashable {
 
 struct SidebarSplitView: View {
     @Environment(\.modelContext) var modelContext
+    @Environment(\.openURL) private var openURL
     @EnvironmentObject var entitlements: EntitlementManager
     @AppStorage("hasShownInitialDisclaimer") private var hasShownInitialDisclaimer = false
 
@@ -119,7 +120,9 @@ struct SidebarSplitView: View {
                     Label("Disclaimer", systemImage: "info.circle")
                 }
 
-                Link(destination: Constants.privacyPolicyURL) {
+                Button {
+                    openURL(Constants.privacyPolicyURL)
+                } label: {
                     Label("Privacy Policy", systemImage: "hand.raised")
                 }
             }
