@@ -294,6 +294,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SESATS10/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "SESATS 10";
+				"INFOPLIST_KEY_CFBundleDisplayName[sdk=macosx*]" = "SESATS 10 with AI";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
@@ -333,6 +334,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SESATS10/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "SESATS 10";
+				"INFOPLIST_KEY_CFBundleDisplayName[sdk=macosx*]" = "SESATS 10 with AI";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
