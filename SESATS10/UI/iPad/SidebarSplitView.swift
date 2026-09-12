@@ -62,6 +62,7 @@ struct SidebarSplitView: View {
                     }
             }
         }
+        .navigationTitle("SESATS 10 with AI")
         .tint(Theme.accent)
         .sheet(isPresented: $showDisclaimer, onDismiss: {
             hasShownInitialDisclaimer = true
@@ -127,7 +128,7 @@ struct SidebarSplitView: View {
                 }
             }
         }
-        .navigationTitle("SESATS 10")
+        .navigationTitle("SESATS 10 with AI")
         .listStyle(.sidebar)
         .navigationSplitViewColumnWidth(min: 280, ideal: 320, max: 400)
         .alert("Reset Scorecard", isPresented: $showResetConfirmation) {

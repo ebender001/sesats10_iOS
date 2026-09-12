@@ -37,7 +37,7 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             topicList
-                .navigationTitle("SESATS 10")
+                .navigationTitle("SESATS 10 with AI")
                 .iOSNavigationBarTitleDisplayMode(.large)
                 .hiddenNavigationBarBackground()
                 .platformNavigationBackground {
