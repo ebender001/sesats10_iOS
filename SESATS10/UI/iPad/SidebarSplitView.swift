@@ -293,6 +293,7 @@ private struct TopicQuestionsColumn: View {
                 .disabled(isAnswered)
                 .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 16))
             }
         }
         .scrollContentBackground(.hidden)
@@ -327,6 +328,7 @@ private struct ReviewQuestionsColumn: View {
                         }
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 16))
                     }
                 }
                 .scrollContentBackground(.hidden)
