@@ -10,6 +10,7 @@ import StoreKit
 
 struct PaywallView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
     @EnvironmentObject var entitlements: EntitlementManager
 
     let productIDs: [String]
@@ -191,7 +192,7 @@ struct PaywallView: View {
                 Text(alertMessage)
             })
             .navigationTitle("SESATS 10 AI")
-            .navigationBarTitleDisplayMode(.inline)
+            .iOSNavigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") { dismiss() }
@@ -199,12 +200,20 @@ struct PaywallView: View {
 
                 ToolbarItem(placement: .primaryAction) {
                     if entitlements.hasAIAccess {
-                        Button("Manage") { showManageSubs = true }
+                        Button("Manage") {
+                            #if os(macOS)
+                            openURL(URL(string: "https://apps.apple.com/account/subscriptions")!)
+                            #else
+                            showManageSubs = true
+                            #endif
+                        }
                     }
                 }
             }
         }
+        #if os(iOS)
         .manageSubscriptionsSheet(isPresented: $showManageSubs)
+        #endif
         .offerCodeRedemption(isPresented: $showOfferCodeRedemption) { result in
             switch result {
             case .success:

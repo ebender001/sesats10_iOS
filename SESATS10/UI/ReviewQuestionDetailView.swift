@@ -172,17 +172,17 @@ struct ReviewQuestionDetailView: View {
             .padding(.bottom, 20)
         }
         .navigationTitle(question.section)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(.hidden, for: .navigationBar)
+        .iOSNavigationBarTitleDisplayMode(.inline)
+        .hiddenNavigationBarBackground()
         .scrollContentBackground(.hidden)
         .background(Color.clear)
-        .containerBackground(for: .navigation) {
+        .platformNavigationBackground {
             Theme.screenBackground(for: question.section)
         }
         .tint(Theme.accent)
         .toolbar {
             if showsCritiqueToolbarAction {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .platformTrailing) {
                     Button("Critique") {
                         showCritique.toggle()
                     }

@@ -38,9 +38,9 @@ struct ContentView: View {
         NavigationStack {
             topicList
                 .navigationTitle("SESATS 10")
-                .navigationBarTitleDisplayMode(.large)
-                .toolbarBackground(.hidden, for: .navigationBar)
-                .containerBackground(for: .navigation) {
+                .iOSNavigationBarTitleDisplayMode(.large)
+                .hiddenNavigationBarBackground()
+                .platformNavigationBackground {
                     Theme.screenBackground
                 }
                 .sheet(isPresented: $showDisclaimer, onDismiss: {
@@ -136,7 +136,9 @@ struct ContentView: View {
         }
         .scrollContentBackground(.hidden)
         .background(Color.clear)
+        #if os(iOS)
         .listStyle(.insetGrouped)
+        #endif
         .tint(Theme.accent)
     }
     

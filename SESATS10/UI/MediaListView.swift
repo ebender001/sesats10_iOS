@@ -40,9 +40,9 @@ struct MediaListView: View {
         .scrollContentBackground(.hidden)
         .background(Color.clear)
         .navigationTitle("Media")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(.hidden, for: .navigationBar)
-        .containerBackground(for: .navigation) {
+        .iOSNavigationBarTitleDisplayMode(.inline)
+        .hiddenNavigationBarBackground()
+        .platformNavigationBackground {
             Theme.screenBackground
         }
     }
@@ -63,9 +63,9 @@ private struct MediaImageCard: View {
     let assetName: String
     let title: String
 
-    private var uiImage: UIImage? {
+    private var uiImage: PlatformImage? {
         guard let path = Bundle.main.path(forResource: assetName, ofType: nil) else { return nil }
-        return UIImage(contentsOfFile: path)
+        return PlatformImage(contentsOfFile: path)
     }
 
     var body: some View {
@@ -75,7 +75,7 @@ private struct MediaImageCard: View {
                 .foregroundStyle(Theme.textSecondary)
 
             if let uiImage {
-                Image(uiImage: uiImage)
+                Image(platformImage: uiImage)
                     .resizable()
                     .scaledToFit()
                     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))

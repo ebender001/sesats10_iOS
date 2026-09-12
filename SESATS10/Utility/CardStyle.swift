@@ -23,7 +23,7 @@ struct CardStyle: ViewModifier {
             )
             .background(
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(Color(.systemBackground))
+                    .fill(Theme.bg)
             )
             .shadow(color: .black.opacity(0.05), radius: 8, y: 4)
     }

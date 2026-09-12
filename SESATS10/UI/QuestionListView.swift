@@ -61,9 +61,9 @@ struct QuestionListView: View {
         .scrollContentBackground(.hidden)
         .background(Color.clear)
         .navigationTitle(topic)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(.hidden, for: .navigationBar)
-        .containerBackground(for: .navigation) {
+        .iOSNavigationBarTitleDisplayMode(.inline)
+        .hiddenNavigationBarBackground()
+        .platformNavigationBackground {
             Theme.screenBackground(for: topic)
         }
         .tint(Theme.accent)
@@ -95,7 +95,7 @@ private struct QuestionDetailLoaderView: View {
                     )
                 }
                 .navigationTitle(sectionTitle)
-                .navigationBarTitleDisplayMode(.inline)
+                .iOSNavigationBarTitleDisplayMode(.inline)
             }
         }
     }

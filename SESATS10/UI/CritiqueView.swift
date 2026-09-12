@@ -118,9 +118,9 @@ struct CritiqueView: View {
         .background(Color.clear)
         .tint(Theme.accent)
         .navigationTitle("Critique")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(.hidden, for: .navigationBar)
-        .containerBackground(for: .navigation) {
+        .iOSNavigationBarTitleDisplayMode(.inline)
+        .hiddenNavigationBarBackground()
+        .platformNavigationBackground {
             Theme.screenBackground(for: question.section)
         }
         .task(id: question.id) {

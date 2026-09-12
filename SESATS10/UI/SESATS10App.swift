@@ -30,6 +30,13 @@ struct SESATS10App: App {
                 .task { entitlements.start() }
         }
         .modelContainer(for: [Question.self, AIUpdate.self])
+        #if os(macOS)
+        .defaultSize(width: 1100, height: 750)
+        .commands {
+            // No document model — this is a single-window reference app.
+            CommandGroup(replacing: .newItem) {}
+        }
+        #endif
     }
 }
 

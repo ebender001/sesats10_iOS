@@ -10,7 +10,9 @@ import UIKit
 
 struct RootView: View {
     var body: some View {
-        #if os(iOS)
+        #if os(macOS)
+        SidebarSplitView()
+        #elseif os(iOS)
         if UIDevice.current.userInterfaceIdiom == .pad {
             SidebarSplitView()
         } else {

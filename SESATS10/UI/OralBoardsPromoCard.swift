@@ -60,7 +60,7 @@ struct OralBoardsPromoCard: View {
             .padding(18)
             .background(
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(Color(.systemBackground).opacity(0.96))
+                    .fill(Theme.surface.opacity(0.96))
             )
             .background(
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
@@ -68,7 +68,7 @@ struct OralBoardsPromoCard: View {
                         LinearGradient(
                             colors: [
                                 Theme.accent.opacity(0.10),
-                                Color(.systemBackground).opacity(0.96)
+                                Theme.surface.opacity(0.96)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing

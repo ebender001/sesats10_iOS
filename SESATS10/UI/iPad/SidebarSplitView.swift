@@ -295,7 +295,7 @@ private struct TopicQuestionsColumn: View {
         .background(Color.clear)
         .navigationTitle(topic)
         .listStyle(.plain)
-        .containerBackground(for: .navigation) {
+        .platformNavigationBackground {
             Theme.screenBackground(for: topic)
         }
     }
@@ -331,7 +331,7 @@ private struct ReviewQuestionsColumn: View {
             }
         }
         .navigationTitle(correctlyAnswered ? "Answered Correctly" : "Answered Incorrectly")
-        .containerBackground(for: .navigation) {
+        .platformNavigationBackground {
             Theme.screenBackground
         }
     }

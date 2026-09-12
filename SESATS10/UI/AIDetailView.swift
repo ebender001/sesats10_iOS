@@ -40,9 +40,9 @@ struct AIDetailView: View {
         .scrollContentBackground(.hidden)
         .background(Color.clear)
         .navigationTitle("AI Update")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(.hidden, for: .navigationBar)
-        .containerBackground(for: .navigation) {
+        .iOSNavigationBarTitleDisplayMode(.inline)
+        .hiddenNavigationBarBackground()
+        .platformNavigationBackground {
             Theme.aiScreenBackground
         }
     }

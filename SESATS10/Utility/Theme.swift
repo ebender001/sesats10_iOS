@@ -51,7 +51,9 @@ enum Theme {
     /// larger canvas the same opacity reads as visual noise behind list text,
     /// so it's dialed down there while iPhone keeps its original look.
     private static var backgroundImageOpacity: Double {
-        #if os(iOS)
+        #if os(macOS)
+        0.12
+        #elseif os(iOS)
         UIDevice.current.userInterfaceIdiom == .pad ? 0.12 : 0.45
         #else
         0.45

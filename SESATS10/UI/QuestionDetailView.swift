@@ -180,9 +180,9 @@ struct QuestionDetailView: View {
             }
         }
         .navigationTitle(detail.section)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(.hidden, for: .navigationBar)
-        .containerBackground(for: .navigation) {
+        .iOSNavigationBarTitleDisplayMode(.inline)
+        .hiddenNavigationBarBackground()
+        .platformNavigationBackground {
             Theme.screenBackground(for: detail.section)
         }
         .tint(Theme.accent)
@@ -191,7 +191,7 @@ struct QuestionDetailView: View {
         }
         .toolbar {
             if showCritiqueToolbarItem {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .platformTrailing) {
                     Button("Critique") {
                         if let persistedQuestion = questionState {
                             activeQuestionState = persistedQuestion
@@ -402,9 +402,9 @@ struct CollapsibleMediaImageCard: View {
     let isExpanded: Bool
     let toggle: () -> Void
 
-    private var uiImage: UIImage? {
+    private var uiImage: PlatformImage? {
         guard let path = Bundle.main.path(forResource: assetName, ofType: nil) else { return nil }
-        return UIImage(contentsOfFile: path)
+        return PlatformImage(contentsOfFile: path)
     }
 
     var body: some View {
@@ -418,7 +418,7 @@ struct CollapsibleMediaImageCard: View {
 
             if isExpanded {
                 if let uiImage {
-                    Image(uiImage: uiImage)
+                    Image(platformImage: uiImage)
                         .resizable()
                         .scaledToFit()
                         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))

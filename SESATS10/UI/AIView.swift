@@ -113,13 +113,13 @@ struct AIView: View {
                 loadingWarningTask?.cancel()
             }
             .navigationTitle("Update")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbarBackground(.hidden, for: .navigationBar)
-            .containerBackground(for: .navigation) {
+            .iOSNavigationBarTitleDisplayMode(.large)
+            .hiddenNavigationBarBackground()
+            .platformNavigationBackground {
                 Theme.aiScreenBackground
             }
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .platformTrailing) {
                     Button {
                         dismiss()
                     } label: {

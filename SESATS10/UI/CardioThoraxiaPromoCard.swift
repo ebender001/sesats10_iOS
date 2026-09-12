@@ -5,12 +5,15 @@
 //  Created by Edward Bender on 4/24/26.
 //
 
+#if os(iOS)
 import SafariServices
+#endif
 import SwiftUI
 
 struct CardioThoraxiaPromoCard: View {
     private let appStoreURL = URL(string: "https://apps.apple.com/us/app/cardiothoraxia/id6758521707")!
 
+    @Environment(\.openURL) private var openURL
     @State private var showAppStorePage = false
     @State private var showSimulatorWarning = false
 
@@ -36,7 +39,9 @@ struct CardioThoraxiaPromoCard: View {
             }
 
             Button {
-                #if targetEnvironment(simulator)
+                #if os(macOS)
+                openURL(appStoreURL)
+                #elseif targetEnvironment(simulator)
                 showSimulatorWarning = true
                 #else
                 showAppStorePage = true
@@ -74,6 +79,7 @@ struct CardioThoraxiaPromoCard: View {
         .padding(.horizontal)
         .padding(.top, 12)
         .padding(.bottom, 24)
+        #if os(iOS)
         .sheet(isPresented: $showAppStorePage) {
             AppStoreSafariView(url: appStoreURL)
         }
@@ -82,9 +88,11 @@ struct CardioThoraxiaPromoCard: View {
         } message: {
             Text("The iOS Simulator cannot open App Store listing URLs reliably. Test this button on a physical iPhone or iPad.")
         }
+        #endif
     }
 }
 
+#if os(iOS)
 private struct AppStoreSafariView: UIViewControllerRepresentable {
     let url: URL
 
@@ -96,3 +104,4 @@ private struct AppStoreSafariView: UIViewControllerRepresentable {
 
     func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
 }
+#endif

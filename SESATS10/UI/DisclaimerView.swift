@@ -39,7 +39,7 @@ To ensure critiques reflect the most current medical knowledge, this app incorpo
                 }
                 .padding()
                 .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
+                    ToolbarItem(placement: .platformTrailing) {
                         Button {
                             dismiss()
                         } label: {

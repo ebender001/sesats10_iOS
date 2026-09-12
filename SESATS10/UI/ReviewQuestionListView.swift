@@ -68,9 +68,9 @@ struct ReviewQuestionListView: View {
             "Answered Correctly" :
             "Answered Incorrectly"
         )
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(.hidden, for: .navigationBar)
-        .containerBackground(for: .navigation) {
+        .iOSNavigationBarTitleDisplayMode(.inline)
+        .hiddenNavigationBarBackground()
+        .platformNavigationBackground {
             Theme.screenBackground
         }
         .tint(Theme.accent)

@@ -16,9 +16,9 @@ struct MediaDetailView: View {
     @State private var player: AVPlayer?
     @State private var resolvedMedia: String = ""
     
-    var uiImage: UIImage? {
+    var uiImage: PlatformImage? {
         guard let path = Bundle.main.path(forResource: resolvedMedia, ofType: nil) else { return nil }
-        return UIImage(contentsOfFile: path)
+        return PlatformImage(contentsOfFile: path)
     }
     
     
@@ -28,7 +28,7 @@ struct MediaDetailView: View {
                 NavigationStack {
                     ZoomableImageView(uiImage: uiImage)
                         .toolbar {
-                            ToolbarItem(placement: .topBarTrailing) {
+                            ToolbarItem(placement: .platformTrailing) {
                                 Button {
                                     dismiss()
                                 } label: {
@@ -50,7 +50,7 @@ struct MediaDetailView: View {
                                 player = nil
                             }
                             .toolbar {
-                                ToolbarItem(placement: .topBarTrailing) {
+                                ToolbarItem(placement: .platformTrailing) {
                                     Button {
                                         dismiss()
                                     } label: {
@@ -85,7 +85,7 @@ struct MediaDetailView: View {
 }
 
 private struct ZoomableImageView: View {
-    let uiImage: UIImage
+    let uiImage: PlatformImage
 
     @State private var scale = 1.0
     @State private var lastScale = 1.0
@@ -96,7 +96,7 @@ private struct ZoomableImageView: View {
         GeometryReader { geometry in
             let fittedSize = fittedImageSize(in: geometry.size)
 
-            Image(uiImage: uiImage)
+            Image(platformImage: uiImage)
                 .resizable()
                 .frame(width: fittedSize.width, height: fittedSize.height)
                 .scaleEffect(scale)
