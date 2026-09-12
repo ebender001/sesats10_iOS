@@ -25,7 +25,6 @@ struct ContentView: View {
     @State private var errorMessage: String?
     @State private var loading: Bool = false
     @State private var showDisclaimer = false
-    @State private var showPrivacyPolicy = false
     @State private var showResetConfirmation = false
     
     var databaseIsClean: Bool {
@@ -50,9 +49,6 @@ struct ContentView: View {
                     DisclaimerView()
                         .presentationDetents([.large])
                         .presentationDragIndicator(.visible)
-                }
-                .sheet(isPresented: $showPrivacyPolicy) {
-                    PrivacyPolicyView()
                 }
                 .safeAreaInset(edge: .bottom, spacing: 0) {
                     footer
@@ -113,7 +109,7 @@ struct ContentView: View {
                     Button {
                         showResetConfirmation.toggle()
                     } label: {
-                        Text("Reset database")
+                        Text("Reset Scorecard")
                             .font(.footnote.weight(.medium))
                             .foregroundStyle(Theme.textSecondary)
                             .padding(.horizontal, 16)
@@ -133,7 +129,7 @@ struct ContentView: View {
         .listRowSeparator(.hidden)
         .listSectionSeparator(.hidden)
         .alert(isPresented: $showResetConfirmation) {
-            Alert(title: Text("Reset Database"),
+            Alert(title: Text("Reset Scorecard"),
                   message: Text("All of your answers and saved updates will be deleted."),
                   primaryButton: .destructive(Text("OK"), action: resetDatabase),
                   secondaryButton: .cancel())
@@ -155,9 +151,7 @@ struct ContentView: View {
             Text("•")
                 .foregroundStyle(Theme.textSecondary)
 
-            Button {
-                showPrivacyPolicy.toggle()
-            } label: {
+            Link(destination: Constants.privacyPolicyURL) {
                 Text("Privacy Policy")
             }
         }

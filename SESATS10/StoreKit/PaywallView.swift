@@ -20,8 +20,6 @@ struct PaywallView: View {
     @State private var alertTitle = ""
     @State private var isPendingPurchase = false
     @State private var isRestoring = false
-    @State private var showPrivacyPolicy = false
-    @State private var showTermsOfUse = false
     @State private var showOfferCodeRedemption = false
 
     var body: some View {
@@ -207,12 +205,6 @@ struct PaywallView: View {
             }
         }
         .manageSubscriptionsSheet(isPresented: $showManageSubs)
-        .sheet(isPresented: $showPrivacyPolicy) {
-            PrivacyPolicyView()
-        }
-        .sheet(isPresented: $showTermsOfUse) {
-            TermsView()
-        }
         .offerCodeRedemption(isPresented: $showOfferCodeRedemption) { result in
             switch result {
             case .success:
@@ -233,11 +225,11 @@ struct PaywallView: View {
     var footer: some View {
         HStack {
             Spacer()
-            Button("Privacy Policy") { showPrivacyPolicy = true }
+            Link("Privacy Policy", destination: Constants.privacyPolicyURL)
                 .buttonStyle(.plain)
                 .padding(.horizontal)
 
-            Button("Terms of Use") { showTermsOfUse = true }
+            Link("Terms of Use", destination: Constants.termsOfUseURL)
                 .buttonStyle(.plain)
                 .padding(.horizontal)
             Spacer()

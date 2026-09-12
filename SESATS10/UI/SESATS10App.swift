@@ -25,7 +25,7 @@ struct SESATS10App: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
                 .environmentObject(entitlements)
                 .task { entitlements.start() }
         }

@@ -12,4 +12,6 @@ struct Constants {
     static let DISCLAIMER_SHOWN = "disclaimerShown"
     static let API_KEY_PRODUCTION = "appl_nZfVxKXcyTQfBJDkJkkjZcvNRMF"
     static let API_KEY_DEVELOPMENT = "test_PTzKqKBVdiWLXzpaYBdsDlxNnuz"
+    static let privacyPolicyURL = URL(string: "https://benderapps.dev/sesats10/privacy/")!
+    static let termsOfUseURL = URL(string: "https://benderapps.dev/sesats10/terms/")!
 }

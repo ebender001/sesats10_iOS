@@ -6,6 +6,9 @@
 //
 
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 enum Theme {
     static let bg = Color("CTBackground")
@@ -44,6 +47,17 @@ enum Theme {
         }
     }
 
+    /// Full-bleed background art is tuned for a phone screen; on iPad's much
+    /// larger canvas the same opacity reads as visual noise behind list text,
+    /// so it's dialed down there while iPhone keeps its original look.
+    private static var backgroundImageOpacity: Double {
+        #if os(iOS)
+        UIDevice.current.userInterfaceIdiom == .pad ? 0.12 : 0.45
+        #else
+        0.45
+        #endif
+    }
+
     private static func screenBackground(named imageName: String) -> some View {
         GeometryReader { geometry in
             let safeAreaInsets = geometry.safeAreaInsets
@@ -60,7 +74,7 @@ enum Theme {
                     .frame(width: width, height: height)
                     .clipped()
                     .offset(x: -safeAreaInsets.leading, y: -safeAreaInsets.top)
-                    .opacity(0.45)
+                    .opacity(backgroundImageOpacity)
                     .ignoresSafeArea()
             }
         }
