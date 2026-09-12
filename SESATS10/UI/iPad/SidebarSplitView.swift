@@ -93,7 +93,7 @@ struct SidebarSplitView: View {
                 }
             }
 
-            Section {
+            Section("Scorecard") {
                 ForEach(scorecards) { scorecard in
                     SidebarScorecardRow(
                         scorecard: scorecard,
@@ -101,16 +101,15 @@ struct SidebarSplitView: View {
                     )
                     .tag(SidebarSelection.scorecard(correct: scorecard.title == "Correct"))
                 }
-            } header: {
-                Text("Scorecard")
-            } footer: {
+
+                // A Section footer isn't rendered by macOS's sidebar list style
+                // (it is on iPad's), so this lives as a normal row instead.
                 if !answeredQuestions.isEmpty {
                     Button(role: .destructive) {
                         showResetConfirmation.toggle()
                     } label: {
                         Label("Reset Scorecard", systemImage: "trash")
                     }
-                    .padding(.top, 4)
                 }
             }
 
