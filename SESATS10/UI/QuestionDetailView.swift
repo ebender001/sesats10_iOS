@@ -463,7 +463,7 @@ struct CollapsibleMediaVideoCard: View {
 
             if isExpanded {
                 if url != nil {
-                    VideoPlayer(player: player)
+                    PlatformVideoPlayer(player: player)
                         .frame(minHeight: 220)
                         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                         .onAppear {
@@ -472,7 +472,7 @@ struct CollapsibleMediaVideoCard: View {
                         .onDisappear {
                             stopPlayback()
                         }
-                        .transition(.opacity.combined(with: .scale(scale: 0.98, anchor: .top)))
+                        .transition(.opacity)
                 } else {
                     ContentUnavailableView(
                         "Video Unavailable",

@@ -110,7 +110,7 @@ private struct MediaVideoCard: View {
                 .foregroundStyle(Theme.textSecondary)
 
             if url != nil {
-                VideoPlayer(player: player)
+                PlatformVideoPlayer(player: player)
                     .frame(minHeight: 220)
                     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                     .onAppear {

@@ -40,7 +40,7 @@ struct MediaDetailView: View {
             } else if mediaType == .video {
                 NavigationStack {
                     if let url = Bundle.main.url(forResource: resolvedMedia, withExtension: nil) {
-                        VideoPlayer(player: player)
+                        PlatformVideoPlayer(player: player)
                             .onAppear {
                                 player = AVPlayer(url: url)
                                 player?.play()
