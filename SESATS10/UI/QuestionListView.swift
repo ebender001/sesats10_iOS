@@ -32,9 +32,7 @@ struct QuestionListView: View {
         ScrollView {
             LazyVStack(spacing: 14) {
                 ForEach(Array(topicQuestions.enumerated()), id: \.element.id) { index, question in
-                    NavigationLink {
-                        QuestionDetailLoaderView(questionID: question.id, sectionTitle: topic)
-                    } label: {
+                    NavigationLink(value: AppRoute.question(.topicQuestion(question.id))) {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("\(index + 1).")
                                 .font(.caption)
@@ -67,37 +65,6 @@ struct QuestionListView: View {
             Theme.screenBackground(for: topic)
         }
         .tint(Theme.accent)
-    }
-}
-
-private struct QuestionDetailLoaderView: View {
-    let questionID: String
-    let sectionTitle: String
-
-    init(questionID: String, sectionTitle: String) {
-        self.questionID = questionID
-        self.sectionTitle = sectionTitle
-    }
-
-    var body: some View {
-        Group {
-            if let detail = BundledQuestionCatalog.detail(for: questionID) {
-                QuestionDetailView(detail: detail)
-            } else {
-                ZStack {
-                    Theme.bg
-                        .ignoresSafeArea()
-
-                    ContentUnavailableView(
-                        "Question Unavailable",
-                        systemImage: "exclamationmark.triangle",
-                        description: Text("Unable to load this question from the bundled catalog.")
-                    )
-                }
-                .navigationTitle(sectionTitle)
-                .iOSNavigationBarTitleDisplayMode(.inline)
-            }
-        }
     }
 }
 

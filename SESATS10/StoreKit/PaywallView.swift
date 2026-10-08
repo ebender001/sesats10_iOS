@@ -183,6 +183,7 @@ struct PaywallView: View {
                 footer
                     .padding(.bottom, 8)
             }
+            .opensOwnLinksInApp()
             .alert(alertTitle,
                    isPresented: $showAlert,
                    actions: {

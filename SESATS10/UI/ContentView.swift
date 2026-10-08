@@ -10,6 +10,8 @@ import SwiftData
 import StoreKit
 
 struct ContentView: View {
+    @Binding var route: [AppRoute]
+
     @Environment(\.modelContext) var modelContext
     @EnvironmentObject var entitlements: EntitlementManager
     @AppStorage("hasShownInitialDisclaimer") private var hasShownInitialDisclaimer = false
@@ -35,8 +37,18 @@ struct ContentView: View {
     private let scorecards = Scorecard.allScorecards
     
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $route) {
             topicList
+                .navigationDestination(for: AppRoute.self) { destination in
+                    switch destination {
+                    case .section(.topic(let topic)):
+                        QuestionListView(topic: topic)
+                    case .section(.scorecard(let correct)):
+                        ReviewQuestionListView(questions: answeredQuestions, correctlyAnswered: correct)
+                    case .question(let questionRoute):
+                        QuestionRouteView(route: questionRoute, answeredQuestions: answeredQuestions)
+                    }
+                }
                 .navigationTitle("SESATS 10 with AI")
                 .iOSNavigationBarTitleDisplayMode(.large)
                 .hiddenNavigationBarBackground()
@@ -54,6 +66,7 @@ struct ContentView: View {
                     footer
                 }
         }
+        .opensOwnLinksInApp()
         .task {
             guard !hasShownInitialDisclaimer else { return }
             try? await Task.sleep(for: .seconds(1))
@@ -66,9 +79,7 @@ struct ContentView: View {
         List {
             Section {
                 ForEach(topics) { topic in
-                    NavigationLink {
-                        QuestionListView(topic: topic.title)
-                    } label: {
+                    NavigationLink(value: AppRoute.section(.topic(topic.title))) {
                         TopicRowView(topic: topic, progress: topicCompletion(for: topic.title))
                     }
                     .navigationLinkIndicatorVisibility(.hidden)
@@ -84,12 +95,7 @@ struct ContentView: View {
             
             Section {
                 ForEach(scorecards) { scorecard in
-                    NavigationLink {
-                        ReviewQuestionListView(
-                            questions: answeredQuestions,
-                            correctlyAnswered: scorecard.title == "Correct"
-                        )
-                    } label: {
+                    NavigationLink(value: AppRoute.section(.scorecard(correct: scorecard.title == "Correct"))) {
                         ScorecardRowView(
                             scorecard: scorecard,
                             count: scorecard.title == "Correct" ? correctAnswersCount : incorrectAnswersCount

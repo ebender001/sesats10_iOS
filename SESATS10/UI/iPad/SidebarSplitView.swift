@@ -11,17 +11,9 @@
 import SwiftUI
 import SwiftData
 
-enum SidebarSelection: Hashable {
-    case topic(String)
-    case scorecard(correct: Bool)
-}
-
-private enum QuestionRoute: Hashable {
-    case topicQuestion(String)
-    case reviewQuestion(String)
-}
-
 struct SidebarSplitView: View {
+    @Binding var route: [AppRoute]
+
     @Environment(\.modelContext) var modelContext
     @Environment(\.openURL) private var openURL
     @EnvironmentObject var entitlements: EntitlementManager
@@ -34,10 +26,16 @@ struct SidebarSplitView: View {
         sort: [SortDescriptor(\Question.finalQuestionNumber)]
     ) private var answeredQuestions: [Question]
 
-    @State private var sidebarSelection: SidebarSelection?
-    @State private var detailPath = NavigationPath()
     @State private var showDisclaimer = false
     @State private var showResetConfirmation = false
+
+    private var sidebarSelection: Binding<SidebarSelection?> {
+        Binding(get: { route.selectedSection }, set: { route.select($0) })
+    }
+
+    private var detailPath: Binding<[QuestionRoute]> {
+        Binding(get: { route.questionRoutes }, set: { route.setQuestionRoutes($0) })
+    }
 
     private let topics = Topic.allTopics
     private let scorecards = Scorecard.allScorecards
@@ -46,19 +44,10 @@ struct SidebarSplitView: View {
         NavigationSplitView {
             sidebar
         } detail: {
-            NavigationStack(path: $detailPath) {
+            NavigationStack(path: detailPath) {
                 detailRoot
-                    .navigationDestination(for: QuestionRoute.self) { route in
-                        switch route {
-                        case .topicQuestion(let id):
-                            if let detail = BundledQuestionCatalog.detail(for: id) {
-                                QuestionDetailView(detail: detail)
-                            }
-                        case .reviewQuestion(let id):
-                            if let question = answeredQuestions.first(where: { $0.id == id }) {
-                                ReviewQuestionDetailView(question: question)
-                            }
-                        }
+                    .navigationDestination(for: QuestionRoute.self) { questionRoute in
+                        QuestionRouteView(route: questionRoute, answeredQuestions: answeredQuestions)
                     }
             }
         }
@@ -77,15 +66,12 @@ struct SidebarSplitView: View {
             guard !Task.isCancelled, !hasShownInitialDisclaimer else { return }
             showDisclaimer = true
         }
-        .onChange(of: sidebarSelection) { _, _ in
-            detailPath = NavigationPath()
-        }
     }
 
     // MARK: - Sidebar
 
     private var sidebar: some View {
-        List(selection: $sidebarSelection) {
+        List(selection: sidebarSelection) {
             Section("Topics") {
                 ForEach(topics) { topic in
                     SidebarTopicRow(topic: topic, progress: topicCompletion(for: topic.title))
@@ -151,7 +137,7 @@ struct SidebarSplitView: View {
 
     @ViewBuilder
     private var detailRoot: some View {
-        switch sidebarSelection {
+        switch route.selectedSection {
         case .topic(let topic):
             TopicQuestionsColumn(topic: topic, answeredQuestions: answeredQuestions)
         case .scorecard(let correct):
@@ -331,6 +317,49 @@ private struct TopicQuestionsColumn: View {
     }
 
     var body: some View {
+        questionContent
+            .scrollContentBackground(.hidden)
+            .background(Color.clear)
+            .navigationTitle(topic)
+            .platformNavigationBackground {
+                Theme.screenBackground(for: topic)
+            }
+    }
+
+    @ViewBuilder
+    private var questionContent: some View {
+        #if os(iOS)
+        // Glass cards match the compact (phone) question list, so the list
+        // looks the same at every width, including iPhone Duo's inner display.
+        ScrollView {
+            LazyVStack(spacing: 14) {
+                ForEach(Array(topicQuestions.enumerated()), id: \.element.id) { index, question in
+                    let isAnswered = answeredQuestionIDs.contains(question.id)
+
+                    NavigationLink(value: QuestionRoute.topicQuestion(question.id)) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("\(index + 1).")
+                                .font(.caption)
+                                .foregroundStyle(Theme.textSecondary)
+                            Text(question.questionText)
+                                .font(.headline)
+                                .foregroundStyle(.primary)
+                                .multilineTextAlignment(.leading)
+                                .lineLimit(4)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .glassCardStyle()
+                        .opacity(isAnswered ? 0.6 : 1.0)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isAnswered)
+                }
+            }
+            .padding(.horizontal)
+            .padding(.top, 8)
+            .padding(.bottom, 20)
+        }
+        #else
         List {
             ForEach(Array(topicQuestions.enumerated()), id: \.element.id) { index, question in
                 let isAnswered = answeredQuestionIDs.contains(question.id)
@@ -349,18 +378,11 @@ private struct TopicQuestionsColumn: View {
                 .disabled(isAnswered)
                 .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)
-                #if os(macOS)
                 .listRowInsets(EdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 16))
-                #endif
             }
         }
-        .scrollContentBackground(.hidden)
-        .background(Color.clear)
-        .navigationTitle(topic)
         .listStyle(.plain)
-        .platformNavigationBackground {
-            Theme.screenBackground(for: topic)
-        }
+        #endif
     }
 }
 

@@ -35,9 +35,7 @@ struct ReviewQuestionListView: View {
                 ScrollView {
                     LazyVStack(spacing: 14) {
                         ForEach(selectedQuestions) { question in
-                            NavigationLink {
-                                ReviewQuestionDetailView(question: question)
-                            } label: {
+                            NavigationLink(value: AppRoute.question(.reviewQuestion(question.id))) {
                                 VStack(alignment: .leading, spacing: 6) {
                                     Text(question.questionText)
                                         .font(.headline)
