@@ -294,7 +294,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SESATS10/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "SESATS 10";
+				INFOPLIST_KEY_CFBundleDisplayName = "SESATS 10 with AI";
 				"INFOPLIST_KEY_CFBundleDisplayName[sdk=macosx*]" = "SESATS 10 with AI";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.medical";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -338,7 +338,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = SESATS10/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "SESATS 10";
+				INFOPLIST_KEY_CFBundleDisplayName = "SESATS 10 with AI";
 				"INFOPLIST_KEY_CFBundleDisplayName[sdk=macosx*]" = "SESATS 10 with AI";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.medical";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
