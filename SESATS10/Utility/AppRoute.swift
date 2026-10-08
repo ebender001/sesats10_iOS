@@ -11,6 +11,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 enum SidebarSelection: Hashable {
     case topic(String)
@@ -20,6 +21,8 @@ enum SidebarSelection: Hashable {
 enum QuestionRoute: Hashable {
     case topicQuestion(String)
     case reviewQuestion(String)
+    case critique(String)
+    case aiUpdate(String)
 }
 
 enum AppRoute: Hashable {
@@ -51,10 +54,26 @@ extension Array where Element == AppRoute {
     }
 }
 
+private struct PushQuestionRouteKey: EnvironmentKey {
+    static let defaultValue: (QuestionRoute) -> Void = { _ in }
+}
+
+extension EnvironmentValues {
+    /// Pushes a screen onto the shared route. Detail views use this instead of
+    /// local `navigationDestination(isPresented:)` state so the screen they
+    /// present survives a layout swap (e.g. folding iPhone Duo).
+    var pushQuestionRoute: (QuestionRoute) -> Void {
+        get { self[PushQuestionRouteKey.self] }
+        set { self[PushQuestionRouteKey.self] = newValue }
+    }
+}
+
 /// Destination for a pushed question, shared by both layouts.
 struct QuestionRouteView: View {
     let route: QuestionRoute
     let answeredQuestions: [Question]
+
+    @Query private var aiUpdates: [AIUpdate]
 
     var body: some View {
         switch route {
@@ -71,6 +90,18 @@ struct QuestionRouteView: View {
         case .reviewQuestion(let id):
             if let question = answeredQuestions.first(where: { $0.id == id }) {
                 ReviewQuestionDetailView(question: question)
+            }
+        case .critique(let id):
+            if let question = answeredQuestions.first(where: { $0.id == id }) {
+                CritiqueView(question: question)
+            }
+        case .aiUpdate(let id):
+            if let question = answeredQuestions.first(where: { $0.id == id }) {
+                AIDetailView(
+                    question: question,
+                    aiUpdate: aiUpdates.first(where: { $0.id == id })
+                        ?? AIUpdate(id: id, text: "AI update failed.", date: .now)
+                )
             }
         }
     }

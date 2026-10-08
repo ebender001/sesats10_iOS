@@ -25,6 +25,9 @@ struct PaywallView: View {
 
     var body: some View {
         NavigationStack {
+            // Scrolls as a whole so short, wide windows (iPhone Duo, Split View)
+            // don't squeeze the product list into a clipped inner scroller.
+            ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Unlock AI")
@@ -51,6 +54,7 @@ struct PaywallView: View {
                 // Apple-provided purchase UI
                 StoreView(ids: productIDs)
                     .storeButton(.hidden, for: .cancellation)
+                    .frame(minHeight: 320)
                     .padding(.horizontal)
                     .onInAppPurchaseCompletion { _, purchaseResult in
                         isPendingPurchase = false
@@ -182,6 +186,8 @@ struct PaywallView: View {
 
                 footer
                     .padding(.bottom, 8)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
             }
             .opensOwnLinksInApp()
             .alert(alertTitle,

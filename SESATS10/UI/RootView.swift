@@ -14,7 +14,17 @@ struct RootView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     #endif
 
+    private var pushQuestionRoute: (QuestionRoute) -> Void {
+        { route.append(.question($0)) }
+    }
+
     var body: some View {
+        content
+            .environment(\.pushQuestionRoute, pushQuestionRoute)
+    }
+
+    @ViewBuilder
+    private var content: some View {
         #if os(macOS)
         SidebarSplitView(route: $route)
             .frame(minWidth: 900, idealWidth: 1100, minHeight: 700, idealHeight: 900)

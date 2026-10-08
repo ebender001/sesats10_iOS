@@ -12,8 +12,7 @@ struct ReviewQuestionDetailView: View {
     let question: Question
     @Query var aiUpdates: [AIUpdate]
     @State private var expandedMediaID: String?
-    @State private var showCritique = false
-    @State private var showAiUpdate = false
+    @Environment(\.pushQuestionRoute) private var pushQuestionRoute
     
     var distractors: [String] {
         [
@@ -46,13 +45,6 @@ struct ReviewQuestionDetailView: View {
     
     var body: some View {
         questionDetail
-        .navigationDestination(isPresented: $showCritique) {
-            CritiqueView(question: question)
-        }
-        .navigationDestination(isPresented: $showAiUpdate) {
-            AIDetailView(question: question, aiUpdate: aiUpdate(for: question) ??
-                         AIUpdate(id: question.id, text: "AI update failed.", date: .now))
-        }
     }
     
     var questionDetail: some View {
@@ -60,7 +52,7 @@ struct ReviewQuestionDetailView: View {
             LazyVStack(alignment: .leading, spacing: 14) {
                 if aiUpdate(for: question) != nil {
                     Button {
-                        showAiUpdate.toggle()
+                        pushQuestionRoute(.aiUpdate(question.id))
                     } label: {
                         HStack(spacing: 10) {
                             Image(systemName: "sparkles")
@@ -184,7 +176,7 @@ struct ReviewQuestionDetailView: View {
             if showsCritiqueToolbarAction {
                 ToolbarItem(placement: .platformTrailing) {
                     Button("Critique") {
-                        showCritique.toggle()
+                        pushQuestionRoute(.critique(question.id))
                     }
                 }
             }

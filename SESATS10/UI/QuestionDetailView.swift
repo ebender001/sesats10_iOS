@@ -15,7 +15,7 @@ struct QuestionDetailView: View {
     @State private var expandedMediaID: String?
     @State private var showConfirmation = false
     @State private var selectedDistractor = ""
-    @State private var showCritique = false
+    @Environment(\.pushQuestionRoute) private var pushQuestionRoute
     @State private var showCritiqueToolbarItem = false
     @State private var showAnswerStatus = false
     @State private var activeQuestionState: Question?
@@ -195,7 +195,7 @@ struct QuestionDetailView: View {
                     Button("Critique") {
                         if let persistedQuestion = questionState {
                             activeQuestionState = persistedQuestion
-                            showCritique = true
+                            pushQuestionRoute(.critique(persistedQuestion.id))
                         }
                     }
                     .transition(.opacity.combined(with: .scale(scale: 0.92)))
@@ -211,7 +211,7 @@ struct QuestionDetailView: View {
             if !detail.critique.isEmpty, let persistedQuestion = questionState {
                 Button("View Critique", role: .confirm) {
                     activeQuestionState = persistedQuestion
-                    showCritique.toggle()
+                    pushQuestionRoute(.critique(persistedQuestion.id))
                 }
             }
         } message: {
@@ -227,14 +227,6 @@ struct QuestionDetailView: View {
             Button("No", role: .cancel) {}
         } message: {
             Text("You chose option \(selectedDistractor.uppercased()). Is this your final answer?")
-        }
-        .navigationDestination(isPresented: Binding(
-            get: { showCritique && questionState != nil },
-            set: { showCritique = $0 }
-        )) {
-            if let persistedQuestion = questionState {
-                CritiqueView(question: persistedQuestion)
-            }
         }
     }
 
